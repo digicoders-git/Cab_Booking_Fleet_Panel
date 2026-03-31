@@ -94,7 +94,7 @@ const DriverFormModal = ({ isOpen, onClose, onSave, editDriver, themeColors }) =
         pincode: editDriver.pincode || "",
         image: null
       });
-      setImgPreview(editDriver.image ? `http://localhost:5000/uploads/${editDriver.image}` : null);
+      setImgPreview(editDriver.image ? `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}/uploads/${editDriver.image}` : null);
     } else {
       setForm(emptyForm);
       setImgPreview(null);
@@ -279,7 +279,7 @@ const DriverDetailModal = ({ driverId, onClose, themeColors }) => {
             <div className="flex flex-col md:flex-row gap-6 mb-8 items-center bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
                <div className="w-32 h-32 rounded-2xl bg-white shadow-sm border p-1 shrink-0 overflow-hidden">
                 {driver.image ? 
-                  <img src={`http://localhost:5000/uploads/${driver.image}`} alt={driver.name} className="w-full h-full object-cover rounded-xl" /> 
+                  <img src={`${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}/uploads/${driver.image}`} alt={driver.name} className="w-full h-full object-cover rounded-xl" /> 
                   : <div className="w-full h-full flex items-center justify-center bg-blue-50 text-blue-200"><User size={48} /></div>
                 }
                </div>
@@ -661,7 +661,7 @@ export default function ManageDrivers() {
                 <div key={d._id} className="px-6 py-5 border-b grid gap-4 items-center hover:bg-blue-50/30 transition-all duration-300" style={{ gridTemplateColumns: "2.5fr 1.5fr 1.5fr 1.2fr 1fr 1fr auto", backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden shrink-0 border border-blue-200">
-                      {d.image ? <img src={`http://localhost:5000/uploads/${d.image}`} alt={d.name} className="w-full h-full object-cover" /> : <FaUser className="text-blue-500" />}
+                      {d.image ? <img src={`${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}/uploads/${d.image}`} alt={d.name} className="w-full h-full object-cover" /> : <FaUser className="text-blue-500" />}
                     </div>
                     <div>
                       <p className="font-bold text-sm text-gray-900">{d.name}</p>

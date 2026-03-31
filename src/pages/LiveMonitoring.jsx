@@ -225,7 +225,7 @@ export default function LiveMonitoring() {
     // Agar image nahi hai toh marker hi mat dikhao
     if (!carImage) return null;
 
-    const baseUrl = "http://localhost:5000/uploads/";
+    const baseUrl = `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}/uploads/`;
     
     return {
       url: `${baseUrl}${carImage}`,
@@ -309,7 +309,7 @@ export default function LiveMonitoring() {
 
                 <div className="flex items-center gap-3 relative z-10">
                   <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-blue-600 shrink-0 overflow-hidden shadow-sm">
-                    {d.image ? <img src={`http://localhost:5000/uploads/${d.image}`} className="w-full h-full object-cover" /> : <FaUser size={20} />}
+                    {d.image ? <img src={`${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}/uploads/${d.image}`} className="w-full h-full object-cover" /> : <FaUser size={20} />}
                   </div>
 
                   <div className="flex-1 min-w-0">
@@ -346,7 +346,7 @@ export default function LiveMonitoring() {
             {/* Modal Header/Profile Image */}
             <div className="relative h-32 sm:h-36 bg-slate-100 shrink-0">
               {selectedDriver.image ? (
-                <img src={`http://localhost:5000/uploads/${selectedDriver.image}`} className="w-full h-full object-cover" />
+                <img src={`${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}/uploads/${selectedDriver.image}`} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
                   <FaUserTie size={50} className="opacity-20" />

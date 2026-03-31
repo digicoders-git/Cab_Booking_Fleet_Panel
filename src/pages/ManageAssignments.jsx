@@ -55,21 +55,17 @@ const ChartCard = ({ title, icon: Icon, children }) => (
 // ─────────────────────────────────────────────
 // StatBox
 // ─────────────────────────────────────────────
-const StatBox = ({ label, value, icon: Icon, color, trend }) => (
-  <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 hover:shadow-md transition-all">
-    <div className="flex items-start justify-between mb-3">
-      <div className="p-3 rounded-lg" style={{ backgroundColor: color + '15' }}>
-        <Icon className="text-lg" style={{ color }} />
+const StatBox = ({ label, value, icon: Icon, color }) => (
+  <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 hover:shadow-lg transition-all">
+    <div className="flex items-center gap-2 sm:gap-3">
+      <div className="p-2 sm:p-3 rounded-lg shrink-0" style={{ backgroundColor: color + '15' }}>
+        <Icon className="text-base sm:text-lg" style={{ color }} />
       </div>
-      {trend !== undefined && (
-        <span className={`text-xs font-medium px-2 py-1 rounded-full ${trend > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-          }`}>
-          {trend > 0 ? '+' : ''}{trend}%
-        </span>
-      )}
+      <div className="min-w-0">
+        <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-tight truncate leading-tight mb-0.5">{label}</p>
+        <p className="text-base sm:text-xl font-black text-gray-900 leading-none">{value}</p>
+      </div>
     </div>
-    <p className="text-2xl font-bold text-gray-900 mb-1">{value}</p>
-    <p className="text-xs font-medium text-gray-500">{label}</p>
   </div>
 );
 
@@ -403,7 +399,14 @@ export default function ManageAssignments() {
           ))
         );
       })
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => {
+        const aTime = assignmentsByDriverId[a._id]?.assignedAt || 0;
+        const bTime = assignmentsByDriverId[b._id]?.assignedAt || 0;
+        if (aTime && bTime) return new Date(bTime) - new Date(aTime);
+        if (aTime) return -1;
+        if (bTime) return 1;
+        return a.name.localeCompare(b.name);
+      });
   }, [drivers, filter, search, assignmentsByDriverId, history]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -448,34 +451,56 @@ export default function ManageAssignments() {
   const historyBarData = Object.entries(monthlyHistoryData).map(([month, count]) => ({ month, count }));
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen" style={{ fontFamily: currentFont.family }}>
+    <div className="space-y-6 p-4 sm:p-6 bg-gray-50 min-h-screen" style={{ fontFamily: currentFont.family }}>
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900">
-            <FaLink className="text-blue-600" />
-            Car Assignments
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">Fleet mein {stats.assigned} active assignments hain</p>
+      {/* Header - Optimized for Mobile */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5">
+        <div className="flex items-start justify-between w-full sm:w-auto">
+           <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900 tracking-tight">
+                <FaLink className="text-blue-600" />
+                Car Assignments
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1">
+                Fleet mein <span className="text-blue-600 font-bold">{stats.assigned}</span> active assignments hain
+              </p>
+           </div>
+           
+           {/* Refresh Button - TOP RIGHT ON MOBILE */}
+           <button
+              onClick={() => { fetchAssignments(); fetchDriversAndCars(); }}
+              className="sm:hidden p-3 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all active:scale-90 text-blue-600"
+              title="Refresh"
+           >
+              <FaSync className={loading ? "animate-spin" : ""} size={16} />
+           </button>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => { fetchAssignments(); fetchDriversAndCars(); }} className="p-2 rounded-lg border hover:bg-gray-50 transition-all text-gray-600" title="Refresh">
-            <FaSync />
-          </button>
-          <button
+
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+           {/* Refresh Button - DESKTOP ONLY */}
+           <button
+            onClick={() => { fetchAssignments(); fetchDriversAndCars(); }}
+            className="hidden sm:flex p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all text-gray-600"
+            title="Refresh"
+           >
+            <FaSync className={loading ? "animate-spin" : ""} />
+           </button>
+
+           {/* Assign Car Button */}
+           <button
             onClick={() => { setPreSelectedDriver(""); setShowAssignModal(true); }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all font-medium text-sm"
-          >
-            <FaLink /> Assign Car
-          </button>
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl sm:rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95 font-bold text-sm"
+           >
+            <FaLink size={14} />
+            Assign Car
+           </button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+      {/* Stats Cards - Responsvie Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatBox label="Total Drivers" value={stats.total} icon={FaUser} color={CHART_COLORS.primary} />
-        <StatBox label="Assigned" value={stats.assigned} icon={FaCheckCircle} color={CHART_COLORS.success} trend={15} />
+        <StatBox label="Assigned" value={stats.assigned} icon={FaCheckCircle} color={CHART_COLORS.success} />
         <StatBox label="Unassigned" value={stats.unassigned} icon={FaUnlink} color={CHART_COLORS.gray} />
         <StatBox label="History" value={stats.history} icon={FaHistory} color={CHART_COLORS.purple} />
       </div>
@@ -491,17 +516,17 @@ export default function ManageAssignments() {
                   data={statusData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
+                  innerRadius={45}
+                  outerRadius={65}
                   paddingAngle={5}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
                   {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                   ))}
                 </Pie>
                 <Tooltip />
+                <Legend iconType="circle" verticalAlign="bottom" align="center" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
               </PieChart>
             </ResponsiveContainer>
           ) : (
@@ -520,17 +545,17 @@ export default function ManageAssignments() {
                   data={driverUtilizationData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
+                  innerRadius={45}
+                  outerRadius={65}
                   paddingAngle={5}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
                   {driverUtilizationData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                   ))}
                 </Pie>
                 <Tooltip />
+                <Legend iconType="circle" verticalAlign="bottom" align="center" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
               </PieChart>
             </ResponsiveContainer>
           ) : (
@@ -616,6 +641,9 @@ export default function ManageAssignments() {
             </button>
           ))}
         </div>
+        {/* Responsive Table Container */}
+        <div className="overflow-x-auto">
+          <div className="min-w-[1000px]">
 
         {/* Table Header */}
         <div className="grid gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase" style={{ gridTemplateColumns: filter === "history" ? "2.5fr 2.5fr 1.5fr 1.5fr 1fr" : "2.5fr 2.5fr 1.5fr 1fr 1.5fr" }}>
@@ -770,6 +798,8 @@ export default function ManageAssignments() {
             </div>
           );
         })}
+          </div>
+        </div>
 
         {/* Pagination */}
         {!loading && filtered.length > 0 && (

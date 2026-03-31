@@ -169,10 +169,11 @@ const Sidebar = ({
 
   return (
     <>
-      {/* Mobile Overlay */}
+      {/* Mobile Overlay - Improved with Backdrop Blur and cross-browser opacity */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 z-40 lg:hidden backdrop-blur-[2px] transition-all duration-300"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
           onClick={onClose}
         />
       )}

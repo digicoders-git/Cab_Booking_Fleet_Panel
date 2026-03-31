@@ -25,7 +25,7 @@ function App() {
       <Toaster position="top-right" />
       <Routes>
         {/* Public */}
-        <Route path="/login" element={isLoggedIn ? <Navigate to="/customers" replace /> : <Login />} />
+        <Route path="/login" element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Login />} />
 
         {/* Protected */}
         {isLoggedIn ? (
@@ -41,7 +41,7 @@ function App() {
                 }
               />
             ))}
-            <Route path="*" element={<Navigate to="/customers" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
         ) : (
           <Route path="*" element={<Navigate to="/login" replace />} />

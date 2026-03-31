@@ -33,7 +33,7 @@ const DashboardLayout = () => {
   }, [location.pathname]);
 
   const toggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
-  const closeSidebar  = useCallback(() => setSidebarOpen(false), []);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
 
   // ✅ Logout handler: context clear + redirect to /login
   const handleLogout = useCallback(() => {
@@ -57,8 +57,8 @@ const DashboardLayout = () => {
         onClose={closeSidebar}
         routes={routes}
         currentPath={location.pathname}
-        user={user}          
-        logout={handleLogout} 
+        user={user}
+        logout={handleLogout}
         themeColors={themeColors}
       />
 
@@ -78,12 +78,12 @@ const DashboardLayout = () => {
         />
 
         {/* Page Content */}
-        <main 
+        <main
           ref={mainRef}
-          className="flex-1 overflow-y-auto p-6" 
+          className={`flex-1 overflow-y-auto ${location.pathname === "/live-monitoring" ? "p-0 sm:p-6" : "p-0 sm:p-6"}`}
           style={{ backgroundColor: themeColors.background }}
         >
-          <Outlet /> 
+          <Outlet />
         </main>
       </div>
     </div>

@@ -55,14 +55,14 @@ const ChartCard = ({ title, subtitle, icon: Icon, children }) => (
 // StatBox Component
 // ─────────────────────────────────────────────
 const StatBox = ({ label, value, icon: Icon, color }) => (
-  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-lg transition-all">
-    <div className="flex items-center gap-3">
-      <div className="p-3 rounded-lg" style={{ backgroundColor: color + '15' }}>
-        <Icon className="text-lg" style={{ color }} />
+  <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 hover:shadow-lg transition-all">
+    <div className="flex items-center gap-2 sm:gap-3">
+      <div className="p-2 sm:p-3 rounded-lg shrink-0" style={{ backgroundColor: color + '15' }}>
+        <Icon className="text-base sm:text-lg" style={{ color }} />
       </div>
-      <div>
-        <p className="text-xs font-medium text-gray-500 uppercase">{label}</p>
-        <p className="text-xl font-bold text-gray-900">{value}</p>
+      <div className="min-w-0">
+        <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase truncate leading-tight mb-0.5">{label}</p>
+        <p className="text-base sm:text-xl font-black text-gray-900 leading-none">{value}</p>
       </div>
     </div>
   </div>
@@ -74,13 +74,14 @@ const StatBox = ({ label, value, icon: Icon, color }) => (
 const CarFormModal = ({ isOpen, onClose, onSave, editCar, themeColors, categories = [] }) => {
   const emptyForm = {
     carNumber: "", carModel: "", carBrand: "", carType: "",
-    carColor: "", manufacturingYear: "", insuranceExpiry: "",
+    seatCapacity: "", carColor: "", manufacturingYear: "", insuranceExpiry: "",
     permitExpiry: "", pucExpiry: "", lastServiceDate: "", nextServiceDate: "",
-    image: null,
+    image: null, rcImage: null, insuranceImage: null, permitImage: null, pucImage: null,
   };
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [imgPreview, setImgPreview] = useState(null);
+  const [docPreviews, setDocPreviews] = useState({ rcImage: null, insuranceImage: null, permitImage: null, pucImage: null });
 
   useEffect(() => {
     if (editCar) {
@@ -89,6 +90,7 @@ const CarFormModal = ({ isOpen, onClose, onSave, editCar, themeColors, categorie
         carModel: editCar.carModel || "",
         carBrand: editCar.carBrand || "",
         carType: editCar.carType?._id || editCar.carType || "",
+        seatCapacity: editCar.seatCapacity || "",
         carColor: editCar.carColor || "",
         manufacturingYear: editCar.manufacturingYear || "",
         insuranceExpiry: editCar.insuranceExpiry ? editCar.insuranceExpiry.slice(0, 10) : "",
@@ -96,20 +98,26 @@ const CarFormModal = ({ isOpen, onClose, onSave, editCar, themeColors, categorie
         pucExpiry: editCar.pucExpiry ? editCar.pucExpiry.slice(0, 10) : "",
         lastServiceDate: editCar.lastServiceDate ? editCar.lastServiceDate.slice(0, 10) : "",
         nextServiceDate: editCar.nextServiceDate ? editCar.nextServiceDate.slice(0, 10) : "",
-        image: null,
+        image: null, rcImage: null, insuranceImage: null, permitImage: null, pucImage: null,
       });
       setImgPreview(editCar.image ? `http://localhost:5000/uploads/${editCar.image}` : null);
+      setDocPreviews({ rcImage: null, insuranceImage: null, permitImage: null, pucImage: null });
     } else {
       setForm(emptyForm);
       setImgPreview(null);
+      setDocPreviews({ rcImage: null, insuranceImage: null, permitImage: null, pucImage: null });
     }
   }, [editCar, isOpen]);
 
+  const fileFields = ["image", "rcImage", "insuranceImage", "permitImage", "pucImage"];
+
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "image" && files && files.length > 0) {
-      setForm((prev) => ({ ...prev, image: files[0] }));
-      setImgPreview(URL.createObjectURL(files[0]));
+    if (fileFields.includes(name) && files && files.length > 0) {
+      setForm((prev) => ({ ...prev, [name]: files[0] }));
+      const url = URL.createObjectURL(files[0]);
+      if (name === "image") setImgPreview(url);
+      else setDocPreviews((prev) => ({ ...prev, [name]: url }));
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
     }
@@ -139,8 +147,8 @@ const CarFormModal = ({ isOpen, onClose, onSave, editCar, themeColors, categorie
       // Build FormData to support image upload (multipart/form-data)
       const payload = new FormData();
       Object.entries(form).forEach(([key, value]) => {
-        if (key === "image") {
-          if (value) payload.append("image", value);
+        if (fileFields.includes(key)) {
+          if (value) payload.append(key, value);
         } else if (key === "carNumber" && editCar) {
           // skip carNumber on edit
         } else if (value !== "" && value !== null && value !== undefined) {
@@ -215,12 +223,6 @@ const CarFormModal = ({ isOpen, onClose, onSave, editCar, themeColors, categorie
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[75vh]">
-          {/* Car Image Preview */}
-          {imgPreview && (
-            <div className="mb-4 flex justify-center">
-              <img src={imgPreview} alt="Car Preview" className="w-32 h-24 object-cover rounded-xl border-4 border-white shadow-lg" />
-            </div>
-          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {renderField({ label: "Car Number", name: "carNumber", required: true, disabled: !!editCar })}
             {renderField({ label: "Car Model", name: "carModel", required: true })}
@@ -252,20 +254,33 @@ const CarFormModal = ({ isOpen, onClose, onSave, editCar, themeColors, categorie
             {renderField({ label: "PUC Expiry", name: "pucExpiry", type: "date" })}
             {renderField({ label: "Last Service Date", name: "lastServiceDate", type: "date" })}
             {renderField({ label: "Next Service Date", name: "nextServiceDate", type: "date" })}
-            {/* Car Image Upload */}
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-medium mb-1" style={labelStyle}>
-                Car Image 🖼️
-              </label>
-              <input
-                type="file"
-                name="image"
-                accept="image/*"
-                onChange={handleChange}
-                className="w-full p-2.5 rounded-lg border text-sm focus:outline-none transition-all"
-                style={inputStyle}
-              />
-            </div>
+            {/* File Upload Fields */}
+            {[
+              { name: "image", label: "Car Image 🚗" },
+              { name: "rcImage", label: "RC Document 📄" },
+              { name: "insuranceImage", label: "Insurance Document 🛡️" },
+              { name: "permitImage", label: "Permit Document 📋" },
+              { name: "pucImage", label: "PUC Document 🌿" },
+            ].map(({ name, label }) => (
+              <div key={name}>
+                <label className="block text-xs font-medium mb-1" style={labelStyle}>{label}</label>
+                <input
+                  type="file"
+                  name={name}
+                  accept="image/*"
+                  onChange={handleChange}
+                  className="w-full p-2.5 rounded-lg border text-sm focus:outline-none transition-all"
+                  style={inputStyle}
+                />
+                {(name === "image" ? imgPreview : docPreviews[name]) && (
+                  <img
+                    src={name === "image" ? imgPreview : docPreviews[name]}
+                    alt={label}
+                    className="mt-2 w-full h-20 object-cover rounded-lg border"
+                  />
+                )}
+              </div>
+            ))}
           </div>
 
           <div className="flex gap-3 mt-6">
@@ -292,6 +307,15 @@ const CarFormModal = ({ isOpen, onClose, onSave, editCar, themeColors, categorie
   );
 };
 
+const DocImage = ({ label, src }) => (
+  <div className="rounded-lg border border-gray-200 overflow-hidden">
+    <a href={src} target="_blank" rel="noreferrer">
+      <img src={src} alt={label} className="w-full h-28 object-cover hover:opacity-90 transition-opacity" />
+    </a>
+    <p className="text-xs text-center text-gray-500 py-1 bg-gray-50">{label}</p>
+  </div>
+);
+
 // ─────────────────────────────────────────────
 // Detail Modal
 // ─────────────────────────────────────────────
@@ -317,13 +341,18 @@ const CarDetailModal = ({ car, onClose, themeColors, categories = [] }) => {
   const getSeatLayout = () => {
     if (category.seatLayout && Array.isArray(category.seatLayout)) {
       return category.seatLayout.map((seat, idx) => (
-        <span key={idx} className="px-2 py-1 bg-gray-100 rounded text-xs">
+        <span key={idx} className="px-2 py-1 bg-gray-100 rounded text-[10px] sm:text-xs text-blue-600 font-bold">
           {seat}
         </span>
       ));
     }
     return <span className="text-sm">{car.seatCapacity || category.seatCapacity || 4} Seats</span>;
   };
+
+  // Robust Category Matching (Population)
+  const categoryId = car.carType?._id || car.carType;
+  const matchedCategory = categories.find(c => (c._id === categoryId) || (c.id === categoryId) || (c.name === categoryId)) || {};
+  const categoryName = matchedCategory.name || (typeof car.carType === 'object' ? car.carType?.name : (typeof car.carType === 'string' && !car.carType.match(/^[0-9a-fA-F]{24}$/) ? car.carType : "—"));
 
   return (
     <div
@@ -342,7 +371,7 @@ const CarDetailModal = ({ car, onClose, themeColors, categories = [] }) => {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center border hover:rotate-90 transition-all"
+            className="w-8 h-8 rounded-full flex items-center justify-center border hover:rotate-90 transition-all bg-white"
           >
             <FaTimes className="text-sm text-gray-500" />
           </button>
@@ -364,9 +393,9 @@ const CarDetailModal = ({ car, onClose, themeColors, categories = [] }) => {
 
           {/* Category Details */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-purple-600 mb-3 pb-1 border-b">Category Details (Populated)</h3>
+            <h3 className="text-sm font-semibold text-purple-600 mb-3 pb-1 border-b">Category Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <Row label="Category Name" value={category.name || "—"} icon={FaTag} />
+              <Row label="Category Name" value={categoryName} icon={FaTag} />
               <Row label="Base Fare" value={`₹${category.baseFare || 0}`} valueColor="#10B981" icon={FaMoneyBillWave} />
               <Row label="Private Rate" value={`₹${category.privateRatePerKm || 0}/km`} valueColor="#10B981" />
               <Row label="Shared Rate" value={`₹${category.sharedRatePerSeatPerKm || 0}/km`} valueColor="#10B981" />
@@ -398,10 +427,28 @@ const CarDetailModal = ({ car, onClose, themeColors, categories = [] }) => {
           {/* Documents Section */}
           <div>
             <h3 className="text-sm font-semibold text-red-600 mb-3 pb-1 border-b">Documents & Expiry</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
               <Row label="Insurance" value={fmtDate(car.insuranceExpiry)} icon={FaShieldAlt} />
               <Row label="Permit" value={fmtDate(car.permitExpiry)} icon={FaCalendarAlt} />
               <Row label="PUC" value={fmtDate(car.pucExpiry)} icon={FaGasPump} />
+            </div>
+            {/* Document Images */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {car.image && (
+                <DocImage label="Car Photo" src={`http://localhost:5000/uploads/${car.image}`} />
+              )}
+              {car.carDocuments?.rcImage && (
+                <DocImage label="RC Document" src={`http://localhost:5000/uploads/${car.carDocuments.rcImage}`} />
+              )}
+              {car.carDocuments?.insuranceImage && (
+                <DocImage label="Insurance" src={`http://localhost:5000/uploads/${car.carDocuments.insuranceImage}`} />
+              )}
+              {car.carDocuments?.permitImage && (
+                <DocImage label="Permit" src={`http://localhost:5000/uploads/${car.carDocuments.permitImage}`} />
+              )}
+              {car.carDocuments?.pucImage && (
+                <DocImage label="PUC" src={`http://localhost:5000/uploads/${car.carDocuments.pucImage}`} />
+              )}
             </div>
           </div>
         </div>
@@ -457,7 +504,12 @@ const DeleteModal = ({ car, onClose, onConfirm, themeColors, deleting }) => {
 // Car Row Component (Expandable)
 // ─────────────────────────────────────────────
 const CarRow = ({ car, categories, onView, onEdit, onDelete }) => {
-  const category = categories.find(c => c._id === (car.carType?._id || car.carType)) || {};
+  // Try matching by _id, id or name from the categories list
+  const categoryId = car.carType?._id || car.carType;
+  const category = categories.find(c => (c._id === categoryId) || (c.id === categoryId) || (c.name === categoryId)) || {};
+
+  // For display name: use found category name, or if carType is a simple string, use it
+  const displayName = category.name || (typeof car.carType === 'object' ? car.carType?.name : (typeof car.carType === 'string' && !car.carType.match(/^[0-9a-fA-F]{24}$/) ? car.carType : "—"));
 
   const getStatusBadge = () => {
     if (car.isBusy) return { label: "On Trip", color: "#F59E0B" };
@@ -484,7 +536,7 @@ const CarRow = ({ car, categories, onView, onEdit, onDelete }) => {
         className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors items-center"
       >
         {/* Car Info with Image */}
-        <div className="col-span-2 flex items-center gap-3">
+        <div className="col-span-4 flex items-center gap-3">
           <div className="w-12 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center overflow-hidden shrink-0">
             {car.image
               ? <img
@@ -500,12 +552,6 @@ const CarRow = ({ car, categories, onView, onEdit, onDelete }) => {
             <p className="font-bold text-sm text-blue-600 truncate">{car.carNumber}</p>
             <p className="text-xs text-gray-500 truncate">{car.carModel}{car.carBrand ? ` (${car.carBrand})` : ''}</p>
           </div>
-        </div>
-
-        {/* Category */}
-        <div className="col-span-2">
-          <p className="font-medium text-sm text-gray-900">{category.name || "—"}</p>
-          <p className="text-xs text-gray-500">{category.seatCapacity || car.seatCapacity || 4} seats</p>
         </div>
 
         {/* Pricing */}
@@ -608,7 +654,8 @@ export default function ManageCars() {
   const fetchCategories = useCallback(async () => {
     try {
       const data = await carsApi.getActiveCategories();
-      const list = data?.categories || data?.data || [];
+      // Handle both {categories:[]} object and direct [] array response
+      const list = data?.categories || data?.data || (Array.isArray(data) ? data : []);
       setCategories(Array.isArray(list) ? list : []);
     } catch (err) {
       console.error("Categories fetch error:", err);
@@ -810,58 +857,68 @@ export default function ManageCars() {
   };
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen" style={{ fontFamily: currentFont.family }}>
+    <div className="space-y-6 p-4 sm:p-6 bg-gray-50 min-h-screen" style={{ fontFamily: currentFont.family }}>
 
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900">
-            <FaCar className="text-blue-600" />
-            Manage Cars
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Total {cars.length} cars in fleet
-          </p>
+      {/* Page Header - Redesigned for Mobile-First */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+        <div className="flex items-start justify-between w-full sm:w-auto">
+           <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900 tracking-tight">
+                <FaCar className="text-blue-600" />
+                Manage Cars
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1">
+                Total <span className="text-blue-600 font-bold">{cars.length}</span> cars in your fleet
+              </p>
+           </div>
+           
+           {/* Refresh Button - TOP RIGHT ON MOBILE */}
+           <button
+              onClick={fetchCars}
+              className="sm:hidden p-3 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all active:scale-90 text-blue-600"
+              title="Refresh"
+           >
+              <FaSync className={loading ? "animate-spin" : ""} size={16} />
+           </button>
         </div>
-        <div className="flex items-center gap-2">
-          <button
+
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+           {/* Refresh Button - DESKTOP ONLY */}
+           <button
             onClick={fetchCars}
-            className="p-2 rounded-lg border hover:bg-gray-50 transition-all"
+            className="hidden sm:flex p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all text-gray-600"
             title="Refresh"
-          >
+           >
             <FaSync className={loading ? "animate-spin" : ""} />
-          </button>
-          <button
+           </button>
+
+           {/* Add New Car - STAYS AS PRIMARY CTA */}
+           <button
             onClick={() => { setEditCar(null); setShowForm(true); }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
-          >
-            <FaPlus />
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl sm:rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95 font-bold text-sm"
+           >
+            <FaPlus size={14} />
             Add New Car
-          </button>
+           </button>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {/* Stats Cards - Optimized for Mobile Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatBox label="Total Cars" value={stats.total} icon={FaCar} color={CHART_COLORS.primary} />
         <StatBox label="Available" value={stats.available} icon={FaCheckCircle} color={CHART_COLORS.success} />
         <StatBox label="On Trip" value={stats.busy} icon={FaClock} color={CHART_COLORS.warning} />
         <StatBox label="Inactive" value={stats.inactive} icon={FaExclamationTriangle} color={CHART_COLORS.danger} />
       </div>
 
-      {/* Charts Section - 3 Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Charts Section - 2 Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chart 1: Status Distribution */}
         <ChartCard title="Car Status" subtitle="Distribution by status" icon={FaChartPie}>
           <HighchartsReact highcharts={Highcharts} options={pieOptions} />
         </ChartCard>
 
-        {/* Chart 2: Category Distribution */}
-        <ChartCard title="Cars by Category" subtitle="Distribution across types" icon={FaChartBar}>
-          <HighchartsReact highcharts={Highcharts} options={barOptions} />
-        </ChartCard>
-
-        {/* Chart 3: Top Earners */}
+        {/* Chart 2: Top Earners */}
         <ChartCard title="Top Earners" subtitle="Highest earning cars" icon={FaChartLine}>
           <HighchartsReact highcharts={Highcharts} options={areaOptions} />
         </ChartCard>
@@ -919,45 +976,49 @@ export default function ManageCars() {
             </button>
           ))}
         </div>
-        {/* Table Header */}
-        <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
-          <div className="col-span-2">Car / Image</div>
-          <div className="col-span-2">Category</div>
-          <div className="col-span-2">Pricing</div>
-          <div className="col-span-2">Seat Layout</div>
-          <div className="col-span-1">Status</div>
-          <div className="col-span-1">Added On</div>
-          <div className="col-span-2 text-center">Actions</div>
+        {/* Responsive Table Container */}
+        <div className="overflow-x-auto">
+          <div className="min-w-[1000px]">
+            {/* Table Header */}
+            <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
+              <div className="col-span-4">Car / Image</div>
+              <div className="col-span-2">Pricing</div>
+              <div className="col-span-2">Seat Layout</div>
+              <div className="col-span-1">Status</div>
+              <div className="col-span-1">Added On</div>
+              <div className="col-span-2 text-center">Actions</div>
+            </div>
+
+            {/* Loading */}
+            {loading && (
+              <div className="flex items-center justify-center py-16">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600" />
+              </div>
+            )}
+
+            {/* Empty */}
+            {!loading && displayedCars.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <FaCar className="text-5xl text-gray-300" />
+                <p className="text-sm text-gray-500">
+                  {search ? "No cars match your search" : "No cars found — add one!"}
+                </p>
+              </div>
+            )}
+
+            {/* Rows */}
+              {!loading && displayedCars.map((car) => (
+                <CarRow
+                  key={car._id}
+                  car={car}
+                  categories={categories}
+                  onView={setViewCar}
+                  onEdit={(car) => { setEditCar(car); setShowForm(true); }}
+                  onDelete={setDeleteCar}
+                />
+              ))}
+          </div>
         </div>
-
-        {/* Loading */}
-        {loading && (
-          <div className="flex items-center justify-center py-16">
-            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600" />
-          </div>
-        )}
-
-        {/* Empty */}
-        {!loading && displayedCars.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <FaCar className="text-5xl text-gray-300" />
-            <p className="text-sm text-gray-500">
-              {search ? "No cars match your search" : "No cars found — add one!"}
-            </p>
-          </div>
-        )}
-
-        {/* Rows */}
-          {!loading && displayedCars.map((car) => (
-            <CarRow
-              key={car._id}
-              car={car}
-              categories={categories}
-              onView={setViewCar}
-              onEdit={(car) => { setEditCar(car); setShowForm(true); }}
-              onDelete={setDeleteCar}
-            />
-          ))}
         {/* Pagination Footer */}
         {!loading && filteredCars.length > 0 && (
           <div className="px-6 py-4 border-t bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">

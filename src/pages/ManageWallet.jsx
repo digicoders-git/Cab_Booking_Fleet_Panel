@@ -54,25 +54,20 @@ const ChartCard = ({ title, icon: Icon, children }) => (
 // ─────────────────────────────────────────────
 // StatBox Component
 // ─────────────────────────────────────────────
-const StatBox = ({ label, value, icon: Icon, color, subtitle, trend }) => (
-  <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all">
-    <div className="flex items-start justify-between mb-4">
-      <div className="p-3 rounded-xl" style={{ backgroundColor: color + '15' }}>
-        <Icon className="text-xl" style={{ color }} />
+const StatBox = ({ label, value, icon: Icon, color }) => (
+  <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100/60 hover:shadow-lg transition-all">
+    <div className="flex items-center gap-2 sm:gap-3">
+      <div className="p-2 sm:p-3 rounded-lg shrink-0" style={{ backgroundColor: color + '15' }}>
+        <Icon className="text-base sm:text-lg" style={{ color }} />
       </div>
-      {trend !== undefined && (
-        <span className={`text-xs font-medium px-2 py-1 rounded-full ${trend > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-          }`}>
-          {trend > 0 ? '+' : ''}{trend}%
-        </span>
-      )}
+      <div className="min-w-0">
+        <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-tight truncate leading-tight mb-0.5">{label}</p>
+        <div className="flex items-baseline gap-0.5">
+          <span className="text-[10px] sm:text-xs font-bold text-gray-400">₹</span>
+          <p className="text-base sm:text-xl font-black text-gray-900 leading-none">{value}</p>
+        </div>
+      </div>
     </div>
-    <p className="text-xs font-medium text-gray-500 mb-1">{label}</p>
-    <p className="text-2xl font-bold text-gray-900 flex items-center gap-1">
-      <span className="text-gray-400 text-lg">₹</span>
-      {value}
-    </p>
-    {subtitle && <p className="text-xs text-gray-400 mt-2 flex items-center gap-1"><Info size={12} /> {subtitle}</p>}
   </div>
 );
 
@@ -216,79 +211,89 @@ export default function ManageWallet() {
   };
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen" style={{ fontFamily: currentFont.family }}>
+    <div className="space-y-6 p-4 sm:p-6 bg-gray-50 min-h-screen" style={{ fontFamily: currentFont.family }}>
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900">
-            <div className="p-2 bg-blue-600 rounded-lg text-white shadow-lg">
-              <FaWallet size={18} />
-            </div>
-            Wallet Management
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Track your earnings, withdrawals, and transactions
-          </p>
+      {/* Header - Optimized for Mobile */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5">
+        <div className="flex items-start justify-between w-full sm:w-auto">
+           <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-500/20">
+                <FaWallet size={20} />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Wallet</h1>
+                <p className="text-[10px] sm:text-xs text-gray-500 font-medium mt-0.5 uppercase tracking-wider">Financial Overview</p>
+              </div>
+           </div>
+           
+           {/* Refresh Button - TOP RIGHT ON MOBILE */}
+           <button
+              onClick={fetchWallet}
+              className="sm:hidden p-3 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all active:scale-90 text-blue-600"
+              title="Refresh"
+           >
+              <FaSync className={refreshing ? "animate-spin" : ""} size={16} />
+           </button>
         </div>
-        <div className="flex items-center gap-2">
-          <select
+
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+           {/* Date Range - Hidden on tiny screens or better styled */}
+           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
-          >
+            className="hidden sm:block px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer"
+           >
             <option value="all">All Time</option>
-            <option value="week">Last 7 Days</option>
-            <option value="month">Last 30 Days</option>
-            <option value="quarter">Last 90 Days</option>
-          </select>
-          <button
+            <option value="week">7 Days</option>
+            <option value="month">30 Days</option>
+           </select>
+
+           {/* Refresh Button - DESKTOP ONLY */}
+           <button
             onClick={fetchWallet}
-            className="p-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition-all"
-            disabled={refreshing}
-          >
-            <FaSync className={refreshing ? "animate-spin" : ""} size={14} />
-          </button>
-          <button
+            className="hidden sm:flex p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all text-gray-600"
+            title="Refresh"
+           >
+            <FaSync className={refreshing ? "animate-spin" : ""} />
+           </button>
+
+           {/* Withdraw Button */}
+           <button
             onClick={() => navigate("/withdraw")}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all flex items-center gap-2 text-sm font-medium"
-          >
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl sm:rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95 font-bold text-sm"
+           >
             <Banknote size={16} />
             Withdraw
-          </button>
+           </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats Cards - Responsive 2-Column Grid on Mobile */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatBox
           label="Wallet Balance"
           value={stats.balance.toLocaleString()}
           icon={FaCoins}
           color={CHART_COLORS.primary}
-          subtitle="Available for withdrawal"
         />
         <StatBox
           label="Total Earnings"
           value={stats.totalEarnings.toLocaleString()}
           icon={FaHandHoldingUsd}
           color={CHART_COLORS.success}
-          subtitle="Lifetime earnings"
-          trend={12}
         />
         <StatBox
-          label="Total Credits"
+          label="Credits"
           value={stats.totalCredits.toLocaleString()}
           icon={TrendingUp}
           color={CHART_COLORS.success}
-          subtitle="Money received"
         />
         <StatBox
-          label="Total Debits"
+          label="Debits"
           value={stats.totalDebits.toLocaleString()}
           icon={TrendingDown}
           color={CHART_COLORS.danger}
-          subtitle="Money withdrawn"
         />
       </div>
 
@@ -303,17 +308,17 @@ export default function ManageWallet() {
                   data={typeData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
+                  innerRadius={45}
+                  outerRadius={65}
                   paddingAngle={5}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
                   {typeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                   ))}
                 </Pie>
                 <Tooltip />
+                <Legend iconType="circle" verticalAlign="bottom" align="center" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
               </PieChart>
             </ResponsiveContainer>
           ) : (
@@ -332,17 +337,17 @@ export default function ManageWallet() {
                   data={statusData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
+                  innerRadius={45}
+                  outerRadius={65}
                   paddingAngle={5}
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
                   {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                   ))}
                 </Pie>
                 <Tooltip />
+                <Legend iconType="circle" verticalAlign="bottom" align="center" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
               </PieChart>
             </ResponsiveContainer>
           ) : (

@@ -1,7 +1,8 @@
 import { lazy } from "react";
-import { FaTachometerAlt, FaCar, FaUser, FaLink, FaWallet, FaHandHoldingUsd, FaBell, FaChartBar, FaUserCircle } from "react-icons/fa";
+import { FaTachometerAlt, FaCar, FaUser, FaLink, FaWallet, FaHandHoldingUsd, FaBell, FaChartBar, FaUserCircle, FaMapMarkedAlt } from "react-icons/fa";
 
 const Dashboard = lazy(() => import("../pages/Dashboard"));
+const LiveMonitoring = lazy(() => import("../pages/LiveMonitoring"));
 const ManageCars = lazy(() => import("../pages/ManageCars"));
 const ManageDrivers = lazy(() => import("../pages/ManageDrivers"));
 const ManageAssignments = lazy(() => import("../pages/ManageAssignments"));
@@ -16,6 +17,7 @@ const routes = [
   { path: "/cars", component: ManageCars, name: "Manage Cars", icon: FaCar },
   { path: "/drivers", component: ManageDrivers, name: "Manage Drivers", icon: FaUser },
   { path: "/assignments", component: ManageAssignments, name: "Assignments", icon: FaLink },
+  { path: "/live-monitoring", component: LiveMonitoring, name: "Live Monitoring", icon: FaMapMarkedAlt },
   { path: "/wallet", component: ManageWallet, name: "Wallet", icon: FaWallet },
   { path: "/withdraw", component: WithdrawMoney, name: "Withdraw", icon: FaHandHoldingUsd, hide: false },
   { path: "/notifications", component: ManageNotifications, name: "Notifications", icon: FaBell },

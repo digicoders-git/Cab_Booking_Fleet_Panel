@@ -42,8 +42,9 @@ export const driversApi = {
   },
 
   // 7. Delete Driver
-  deleteDriver: async (driverId) => {
-    const response = await apiClient.delete(`/api/fleet/drivers/delete/${driverId}`);
+  // 8. Get LIVE Status Drivers (Directly from main model)
+  getFleetDriversLive: async () => {
+    const response = await apiClient.get("/api/fleet/drivers/live");
     return response.data;
   },
 };

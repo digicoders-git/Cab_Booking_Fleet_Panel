@@ -538,25 +538,30 @@ export default function FleetDashboard() {
           <span className="text-xs text-gray-500">Last 5 assignments</span>
         </div>
 
-        {/* Table Header */}
-        <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
-          <div className="col-span-3">Driver</div>
-          <div className="col-span-3">Vehicle</div>
-          <div className="col-span-2">Seats</div>
-          <div className="col-span-2">Status</div>
-          <div className="col-span-2">Assigned Date</div>
-        </div>
+        {/* Responsive Container */}
+        <div className="overflow-x-auto">
+          <div className="min-w-[800px]">
+            {/* Table Header */}
+            <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
+              <div className="col-span-3">Driver</div>
+              <div className="col-span-3">Vehicle</div>
+              <div className="col-span-2">Seats</div>
+              <div className="col-span-2">Status</div>
+              <div className="col-span-2">Assigned Date</div>
+            </div>
 
-        {/* Assignments */}
-        {assignments.length > 0 ? (
-          assignments.slice(0, 5).map(assignment => (
-            <AssignmentRow key={assignment._id} assignment={assignment} />
-          ))
-        ) : (
-          <div className="py-8 text-center text-gray-400 text-sm">
-            No recent assignments
+            {/* Assignments */}
+            {assignments.length > 0 ? (
+              assignments.slice(0, 5).map(assignment => (
+                <AssignmentRow key={assignment._id} assignment={assignment} />
+              ))
+            ) : (
+              <div className="py-8 text-center text-gray-400 text-sm">
+                No recent assignments
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Recent Transactions */}
@@ -569,25 +574,30 @@ export default function FleetDashboard() {
           <span className="text-xs text-gray-500">Last 5 transactions</span>
         </div>
 
-        {/* Table Header */}
-        <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
-          <div className="col-span-3">Date</div>
-          <div className="col-span-2">Type</div>
-          <div className="col-span-3">Category</div>
-          <div className="col-span-2">Amount</div>
-          <div className="col-span-2">Status</div>
-        </div>
+        {/* Responsive Container */}
+        <div className="overflow-x-auto">
+          <div className="min-w-[800px]">
+            {/* Table Header */}
+            <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
+              <div className="col-span-3">Date</div>
+              <div className="col-span-2">Type</div>
+              <div className="col-span-3">Category</div>
+              <div className="col-span-2">Amount</div>
+              <div className="col-span-2">Status</div>
+            </div>
 
-        {/* Transactions */}
-        {transactions.length > 0 ? (
-          transactions.slice(0, 5).map(transaction => (
-            <TransactionRow key={transaction._id} transaction={transaction} />
-          ))
-        ) : (
-          <div className="py-8 text-center text-gray-400 text-sm">
-            No recent transactions
+            {/* Transactions */}
+            {transactions.length > 0 ? (
+              transactions.slice(0, 5).map(transaction => (
+                <TransactionRow key={transaction._id} transaction={transaction} />
+              ))
+            ) : (
+              <div className="py-8 text-center text-gray-400 text-sm">
+                No recent transactions
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

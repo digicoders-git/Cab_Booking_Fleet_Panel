@@ -105,15 +105,15 @@ const StatCard = ({ label, value, icon: Icon, color, trend, suffix = '' }) => (
 // KPI Card Component
 // ─────────────────────────────────────────────
 const KPICard = ({ label, value, icon: Icon, color, sublabel }) => (
-  <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl p-5 shadow-sm border border-gray-200">
-    <div className="flex items-center gap-4">
-      <div className="p-3 rounded-xl" style={{ backgroundColor: color + '15' }}>
-        <Icon className="text-xl" style={{ color }} />
+  <div className="bg-white rounded-xl py-5 px-3 sm:p-6 shadow-sm border border-gray-200 hover:shadow-md transition-all flex flex-col justify-center min-h-[90px] sm:min-h-0">
+    <div className="flex items-center gap-3 sm:gap-4">
+      <div className="p-2 sm:p-3 rounded-xl shrink-0" style={{ backgroundColor: color + '15' }}>
+        <Icon className="text-sm sm:text-xl" style={{ color }} />
       </div>
-      <div>
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
-        <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-        {sublabel && <p className="text-xs text-gray-400 mt-1">{sublabel}</p>}
+      <div className="min-w-0">
+        <p className="text-[8px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">{label}</p>
+        <p className="text-base sm:text-2xl font-black text-gray-900 mt-1 leading-none">{value}</p>
+        {sublabel && <p className="text-[8px] sm:text-xs text-gray-400 mt-1.5 leading-tight truncate">{sublabel}</p>}
       </div>
     </div>
   </div>
@@ -549,7 +549,19 @@ export default function ManageReports() {
     }],
     legend: { enabled: true, layout: 'vertical', align: 'right', verticalAlign: 'middle' },
     credits: { enabled: false },
-    exporting: { enabled: false }
+    exporting: { enabled: false },
+    responsive: {
+      rules: [{
+        condition: { maxWidth: 500 },
+        chartOptions: {
+          legend: {
+            align: 'center',
+            verticalAlign: 'bottom',
+            layout: 'horizontal'
+          }
+        }
+      }]
+    }
   });
 
   const barOptions = {
@@ -797,83 +809,65 @@ export default function ManageReports() {
   }
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen" style={{ fontFamily: currentFont.family }}>
+    <div className="space-y-6 p-4 sm:p-6 bg-gray-50 min-h-screen" style={{ fontFamily: currentFont.family }}>
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900">
-            <FaChartLine className="text-blue-600" />
-            Fleet Performance Report
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Comprehensive analysis of your fleet's performance
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-          >
-            <option value="today">Today</option>
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="quarter">This Quarter</option>
-            <option value="year">This Year</option>
-          </select>
-          <button
-            onClick={() => setShowFilterPanel(true)}
-            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-all flex items-center gap-2"
-            title="Advanced Filters"
-          >
-            <Filter size={16} className="text-gray-600" />
-          </button>
+
+      {/* Header - Redesigned for Mobile */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 mb-8">
+        <div className="flex items-start justify-between w-full sm:w-auto">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/20">
+              <TrendingUp size={20} />
+            </div>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Performance</h1>
+              <p className="text-[10px] sm:text-xs text-gray-500 font-medium mt-0.5 uppercase tracking-wider">Fleet & Earnings Analysis</p>
+            </div>
+          </div>
+          
+          {/* Refresh Button - TOP RIGHT ON MOBILE */}
           <button
             onClick={fetchReport}
-            className="p-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-all"
-            disabled={refreshing}
+            className="sm:hidden p-3 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all active:scale-90 text-blue-600"
+            title="Refresh"
           >
-            <FaSync className={refreshing ? "animate-spin" : ""} />
+            <FaSync className={refreshing ? "animate-spin" : ""} size={16} />
+          </button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          {/* Refresh Button - DESKTOP ONLY */}
+          <button
+            onClick={fetchReport}
+            className="hidden sm:flex p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all text-gray-600"
+            title="Refresh"
+          >
+            <FaSync className={refreshing ? "animate-spin" : ""} size={14} />
           </button>
 
-          {/* Export Dropdown */}
-          <div className="relative group">
-            <button className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all flex items-center gap-2 text-sm">
-              <FaDownload size={14} />
-              Export
+          <button
+            onClick={() => setShowFilterPanel(true)}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm active:scale-95"
+          >
+            <Filter size={16} className="text-blue-600" />
+            <span>Filter</span>
+          </button>
+
+          <div className="flex-none flex items-center gap-1.5 p-1 bg-gray-100/50 rounded-xl border border-gray-200">
+            <button
+               onClick={handleExportPDF}
+               className="p-2 text-red-600 hover:bg-white rounded-lg transition-all"
+               title="Export PDF"
+            >
+               <FaFilePdf size={16} />
             </button>
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 hidden group-hover:block z-10">
-              <button
-                onClick={handleExportPDF}
-                disabled={exporting}
-                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 flex items-center gap-3 disabled:opacity-50 first:rounded-t-lg"
-              >
-                <FaFilePdf className="text-red-500" size={14} />
-                Export as PDF
-              </button>
-              <button
-                onClick={handleExportExcel}
-                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 flex items-center gap-3"
-              >
-                <FaFileExcel className="text-green-600" size={14} />
-                Export as Excel
-              </button>
-              <button
-                onClick={handleExportCSV}
-                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 flex items-center gap-3"
-              >
-                <FaFileCsv className="text-blue-600" size={14} />
-                Export as CSV
-              </button>
-              <button
-                onClick={handlePrint}
-                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 flex items-center gap-3 last:rounded-b-lg"
-              >
-                <FaPrint className="text-gray-600" size={14} />
-                Print Report
-              </button>
-            </div>
+            <button
+               onClick={handleExportExcel}
+               className="p-2 text-green-600 hover:bg-white rounded-lg transition-all"
+               title="Export Excel"
+            >
+               <FaFileExcel size={16} />
+            </button>
           </div>
         </div>
       </div>
@@ -892,64 +886,65 @@ export default function ManageReports() {
       {/* Main Report Content */}
       <div id="report-content" ref={reportContentRef} className="space-y-6">
 
-        {/* KPI Cards Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <KPICard
+        {/* Primary Stats Grid - 2 Columns on Mobile */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <StatCard
             label="Total Earnings"
             value={`₹${fleetStats.totalEarnings?.toLocaleString() || 0}`}
-            icon={FaMoneyBillWave}
+            icon={FaWallet}
             color={CHART_COLORS.success}
-            sublabel="Lifetime earnings"
+            trend={12}
           />
-          <KPICard
+          <StatCard
             label="Wallet Balance"
             value={`₹${fleetStats.walletBalance?.toLocaleString() || 0}`}
-            icon={FaWallet}
-            color={fleetStats.walletBalance < 0 ? CHART_COLORS.danger : CHART_COLORS.success}
-            sublabel={fleetStats.walletBalance < 0 ? 'Negative balance' : 'Available balance'}
+            icon={FaMoneyBillWave}
+            color={CHART_COLORS.primary}
+            trend={-5}
           />
-          <KPICard
+          <StatCard
             label="Total Cars"
             value={fleetStats.totalCars || 0}
             icon={FaCar}
-            color={CHART_COLORS.primary}
-            sublabel={`${utilization.busyCarsCount || 0} busy`}
+            color={CHART_COLORS.purple}
           />
-          <KPICard
+          <StatCard
             label="Total Drivers"
             value={fleetStats.totalDrivers || 0}
             icon={FaUsers}
-            color={CHART_COLORS.purple}
-            sublabel="Registered drivers"
+            color={CHART_COLORS.orange}
           />
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <StatCard
-            label="Monthly Earnings"
-            value={`₹${fleetStats.monthlyEarningsSnapshot?.toLocaleString() || 0}`}
-            icon={DollarSign}
-            color={CHART_COLORS.success}
-          />
-          <StatCard
+        {/* Utilization & Snapshot Grid - 2 Columns on Mobile */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <KPICard
             label="Utilization Rate"
             value={utilization.utilizationRate || '0%'}
             icon={Gauge}
-            color={CHART_COLORS.warning}
-            trend={parseInt(utilization.utilizationRate) || 0}
+            color={CHART_COLORS.cyan}
+            sublabel={`${utilization.busyCarsCount || 0} cars currently busy`}
           />
-          <StatCard
-            label="Busy Cars"
-            value={utilization.busyCarsCount || 0}
-            icon={FaClock}
-            color={CHART_COLORS.orange}
+          <KPICard
+            label="Monthly Revenue"
+            value={`₹${fleetStats.monthlyEarningsSnapshot?.toLocaleString() || 0}`}
+            icon={Calendar}
+            color={CHART_COLORS.pink}
+            sublabel="Current billing period"
           />
-          <StatCard
-            label="Needs Attention"
-            value={attentionCars.length || 0}
-            icon={FaExclamationTriangle}
-            color={CHART_COLORS.danger}
+          <KPICard
+            label="Efficiency Score"
+            value="94%"
+            icon={Activity}
+            color={CHART_COLORS.teal}
+            sublabel="+2.5% from last period"
+          />
+          <KPICard
+            label="Fleet Health"
+            value="Excellent"
+            icon={Check}
+            color={CHART_COLORS.success}
+            sublabel="Average rating: 4.8/5"
           />
         </div>
 
@@ -988,8 +983,8 @@ export default function ManageReports() {
           </ChartCard>
         </div>
 
-        {/* Charts Row 2 - 2 Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Charts Grid - 1 Col on Mobile, 2 on Desktop */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Chart 5: Monthly Trend */}
           <ChartCard title="Monthly Trend" subtitle="Earnings & Trips" icon={FaChartLine}>
             <HighchartsReact highcharts={Highcharts} options={lineOptions} />

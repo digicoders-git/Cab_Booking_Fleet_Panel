@@ -192,83 +192,94 @@ export default function ManageProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-8" style={{ fontFamily: currentFont.family }}>
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6" style={{ fontFamily: currentFont.family }}>
 
       {/* Header */}
-      <div className="max-w-8xl mx-auto mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 bg-blue-600 text-white rounded-xl shadow-lg">
+      {/* Header & Main Container */}
+      <div className="max-w-8xl mx-auto">
+        {/* Header - Redesigned for Mobile */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 mb-4 sm:mb-6">
+          <div className="flex items-start justify-between w-full sm:w-auto">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/20">
                 <User size={20} />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Profile Settings</h1>
-                <p className="text-sm text-gray-500 mt-1">Manage your account and business details</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Profile</h1>
+                <p className="text-[10px] sm:text-xs text-gray-500 font-medium mt-0.5 uppercase tracking-wider">Business & Account Settings</p>
               </div>
             </div>
+
+            {/* Refresh Button - TOP RIGHT ON MOBILE */}
+            <button
+              onClick={fetchProfile}
+              className="sm:hidden p-3 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all active:scale-90 text-blue-600"
+              title="Refresh"
+            >
+              <FaSync className={updating ? "animate-spin" : ""} size={16} />
+            </button>
           </div>
 
-          <button
-            onClick={fetchProfile}
-            className="p-2.5 border border-gray-200 bg-white rounded-lg text-gray-600 hover:text-blue-600 hover:border-blue-200 transition-all"
-            title="Refresh"
-          >
-            <FaSync className={updating ? "animate-spin" : ""} size={14} />
-          </button>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            {/* Refresh Button - DESKTOP ONLY */}
+            <button
+              onClick={fetchProfile}
+              className="hidden sm:flex p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all text-gray-600"
+              title="Refresh"
+            >
+              <FaSync className={updating ? "animate-spin" : ""} size={14} />
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
-            <p className="text-xs text-gray-500 mb-1">Total Cars</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.totalCars}</p>
+        {/* Stats Cards - Dual Column Grid on Mobile */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-2 sm:mt-4">
+          <div className="bg-white rounded-xl pt-2 pb-3 px-3 sm:pt-3 sm:pb-4 sm:px-4 border border-gray-100/60 shadow-sm hover:shadow-md transition-all">
+            <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-tight mb-1 leading-tight">Total Cars</p>
+            <p className="text-xl sm:text-2xl font-black text-gray-900 leading-none">{stats.totalCars}</p>
           </div>
-          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
-            <p className="text-xs text-gray-500 mb-1">Total Drivers</p>
-            <p className="text-2xl font-bold text-gray-900">{stats.totalDrivers}</p>
+          <div className="bg-white rounded-xl pt-2 pb-3 px-3 sm:pt-3 sm:pb-4 sm:px-4 border border-gray-100/60 shadow-sm hover:shadow-md transition-all">
+            <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-tight mb-1 leading-tight">Total Drivers</p>
+            <p className="text-xl sm:text-2xl font-black text-gray-900 leading-none">{stats.totalDrivers}</p>
           </div>
-          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
-            <p className="text-xs text-gray-500 mb-1">Total Earnings</p>
-            <p className="text-2xl font-bold text-green-600">₹{stats.totalEarnings.toLocaleString()}</p>
+          <div className="bg-white rounded-xl pt-2 pb-3 px-3 sm:pt-3 sm:pb-4 sm:px-4 border border-gray-100/60 shadow-sm hover:shadow-md transition-all house-shadow">
+            <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-tight mb-1 leading-tight">Total Earnings</p>
+            <div className="flex items-baseline gap-0.5">
+              <span className="text-[10px] sm:text-xs font-bold text-emerald-500 tracking-tight">₹</span>
+              <p className="text-xl sm:text-2xl font-black text-emerald-600 leading-none truncate">{stats.totalEarnings.toLocaleString()}</p>
+            </div>
           </div>
-          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
-            <p className="text-xs text-gray-500 mb-1">Wallet Balance</p>
-            <p className={`text-2xl font-bold ${stats.walletBalance < 0 ? 'text-red-600' : 'text-green-600'}`}>
-              ₹{stats.walletBalance.toLocaleString()}
-            </p>
+          <div className="bg-white rounded-xl pt-2 pb-3 px-3 sm:pt-3 sm:pb-4 sm:px-4 border border-gray-100/60 shadow-sm hover:shadow-md transition-all">
+            <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-tight mb-1 leading-tight">Wallet Balance</p>
+            <div className="flex items-baseline gap-0.5">
+              <span className={`text-[10px] sm:text-xs font-bold tracking-tight ${stats.walletBalance < 0 ? 'text-red-500' : 'text-blue-500'}`}>₹</span>
+              <p className={`text-xl sm:text-2xl font-black leading-none truncate ${stats.walletBalance < 0 ? 'text-red-600' : 'text-blue-600'}`}>
+                {stats.walletBalance.toLocaleString()}
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 mt-8">
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`px-6 py-3 text-sm font-medium transition-colors relative ${activeTab === 'profile'
-              ? 'text-blue-600 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
-              }`}
-          >
-            Profile Info
-          </button>
-          <button
-            onClick={() => setActiveTab('bank')}
-            className={`px-6 py-3 text-sm font-medium transition-colors relative ${activeTab === 'bank'
-              ? 'text-blue-600 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
-              }`}
-          >
-            Bank Details
-          </button>
-          <button
-            onClick={() => setActiveTab('security')}
-            className={`px-6 py-3 text-sm font-medium transition-colors relative ${activeTab === 'security'
-              ? 'text-blue-600 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-blue-600'
-              : 'text-gray-500 hover:text-gray-700'
-              }`}
-          >
-            Security
-          </button>
+        {/* Tabs - Horizontal Scroll on tiny screens */}
+        <div className="flex border-b border-gray-100 mt-8 overflow-x-auto no-scrollbar scroll-smooth">
+          {[
+            { id: 'profile', label: 'Profile Info' },
+            { id: 'bank', label: 'Bank Details' },
+            { id: 'security', label: 'Security' }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-5 py-4 text-xs sm:text-sm font-bold transition-all relative whitespace-nowrap ${activeTab === tab.id
+                ? 'text-blue-600 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-blue-600'
+                : 'text-gray-400 hover:text-gray-600'
+                }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 

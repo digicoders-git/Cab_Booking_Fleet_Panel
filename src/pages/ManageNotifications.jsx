@@ -105,34 +105,48 @@ export default function ManageNotifications() {
    const unreadCount = notifications.filter(n => !n.read).length;
 
    return (
-      <div className="min-h-screen bg-gray-50 p-4 sm:p-8" style={{ fontFamily: currentFont.family }}>
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6" style={{ fontFamily: currentFont.family }}>
 
          {/* Header */}
-         <div className="max-w-8xl mx-auto mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-               <div>
-                  <div className="flex items-center gap-3 mb-2">
-                     <div className="p-3 bg-blue-600 text-white rounded-xl shadow-lg">
+         {/* Header & Stats Container */}
+         <div className="max-w-8xl mx-auto">
+            {/* Header - Redesigned for Mobile */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 mb-8">
+               <div className="flex items-start justify-between w-full sm:w-auto">
+                  <div className="flex items-center gap-3">
+                     <div className="p-2.5 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/20">
                         <FaBell size={20} />
                      </div>
                      <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Notifications</h1>
-                        <p className="text-sm text-gray-500 mt-1">Stay updated with fleet news and system alerts</p>
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Notifications</h1>
+                        <p className="text-[10px] sm:text-xs text-gray-500 font-medium mt-0.5 uppercase tracking-wider">System Activity & Alerts</p>
                      </div>
                   </div>
-               </div>
-
-               <div className="flex items-center gap-2">
+                  
+                  {/* Refresh Button - TOP RIGHT ON MOBILE */}
                   <button
                      onClick={fetchNotifications}
-                     className="p-2.5 border border-gray-200 bg-white rounded-lg text-gray-600 hover:text-blue-600 hover:border-blue-200 transition-all"
+                     className="sm:hidden p-3 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all active:scale-90 text-blue-600"
+                     title="Refresh"
+                  >
+                     <FaSync className={loading ? "animate-spin" : ""} size={16} />
+                  </button>
+               </div>
+
+               <div className="flex items-center gap-3 w-full sm:w-auto">
+                  {/* Refresh Button - DESKTOP ONLY */}
+                  <button
+                     onClick={fetchNotifications}
+                     className="hidden sm:flex p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all text-gray-600"
                      title="Refresh"
                   >
                      <FaSync className={loading ? "animate-spin" : ""} size={14} />
                   </button>
+
+                  {/* Mark All Read Button */}
                   <button
                      onClick={handleMarkAllRead}
-                     className="px-4 py-2.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all flex items-center gap-2 text-sm font-medium"
+                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl sm:rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95 font-bold text-sm"
                   >
                      <FaCheckDouble size={14} />
                      Mark All Read
@@ -141,22 +155,23 @@ export default function ManageNotifications() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6">
-               <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-                  <p className="text-xs text-gray-500 mb-1">Total</p>
-                  <p className="text-2xl font-bold text-gray-900">{notifications.length}</p>
+            {/* Stats Cards - Dual Column Grid on Mobile */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mt-6">
+               <div className="bg-white rounded-xl p-3 sm:p-4 border border-gray-100/60 shadow-sm hover:shadow-md transition-all">
+                  <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-tight mb-1">Total</p>
+                  <p className="text-xl sm:text-2xl font-black text-gray-900 leading-none">{notifications.length}</p>
                </div>
-               <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-                  <p className="text-xs text-gray-500 mb-1">Unread</p>
-                  <p className="text-2xl font-bold text-blue-600">{unreadCount}</p>
+               <div className="bg-white rounded-xl p-3 sm:p-4 border border-gray-100/60 shadow-sm hover:shadow-md transition-all">
+                  <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-tight mb-1">Unread</p>
+                  <p className="text-xl sm:text-2xl font-black text-blue-600 leading-none">{unreadCount}</p>
                </div>
-               <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-                  <p className="text-xs text-gray-500 mb-1">Read</p>
-                  <p className="text-2xl font-bold text-gray-600">{notifications.length - unreadCount}</p>
+               <div className="bg-white rounded-xl p-3 sm:p-4 border border-gray-100/60 shadow-sm hover:shadow-md transition-all house-shadow">
+                  <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-tight mb-1">Read</p>
+                  <p className="text-xl sm:text-2xl font-black text-gray-600 leading-none">{notifications.length - unreadCount}</p>
                </div>
-               <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
-                  <p className="text-xs text-gray-500 mb-1">This Week</p>
-                  <p className="text-2xl font-bold text-green-600">
+               <div className="bg-white rounded-xl p-3 sm:p-4 border border-gray-100/60 shadow-sm hover:shadow-md transition-all">
+                  <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-tight mb-1">Weekly</p>
+                  <p className="text-xl sm:text-2xl font-black text-emerald-600 leading-none">
                      {notifications.filter(n => {
                         const diff = (new Date() - new Date(n.createdAt)) / (1000 * 60 * 60 * 24);
                         return diff <= 7;
@@ -249,21 +264,21 @@ export default function ManageNotifications() {
                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600" />
                         )}
 
-                        <div className="p-6">
+                        <div className="p-4 sm:p-6">
                            <div className="flex items-start gap-4">
                               {/* Icon */}
                               <div
-                                 className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                                 className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0"
                                  style={{ backgroundColor: icon.bg }}
                               >
-                                 <icon.icon size={20} style={{ color: icon.color }} />
+                                 <icon.icon size={18} className="sm:size-[20px]" style={{ color: icon.color }} />
                               </div>
 
                               {/* Content */}
                               <div className="flex-1 min-w-0">
                                  <div className="flex items-start justify-between gap-4 mb-2">
                                     <div>
-                                       <h3 className={`text-base font-semibold ${isUnread ? 'text-gray-900' : 'text-gray-700'}`}>
+                                       <h3 className={`text-sm sm:text-base font-semibold ${isUnread ? 'text-gray-900' : 'text-gray-700'}`}>
                                           {n.title}
                                        </h3>
                                        <p className="text-xs text-gray-500 mt-1">

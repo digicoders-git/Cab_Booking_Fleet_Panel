@@ -5,6 +5,8 @@ import { useTheme } from "../context/ThemeContext";
 import { useFont } from "../context/FontContext";
 import { useAuth } from "../context/AuthContext";
 import { notificationApi } from "../api/notificationApi";
+import { io } from "socket.io-client";
+import { Activity, Radio } from "lucide-react";
 
 const Header = memo(({
   toggleSidebar,
@@ -15,6 +17,28 @@ const Header = memo(({
   const { currentFont } = useFont();
   const { user } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [socketSignals, setSocketSignals] = useState(0);
+
+  // === SOCKET.IO REAL-TIME TRACKING SIGNALS ===
+  useEffect(() => {
+    if (user?._id) {
+       // Backend URL: adjust if needed (loading from .env or using localhost:5000)
+       const socket = io("http://localhost:5000");
+
+       socket.on("connect", () => {
+         console.log("Header: Connected to Real-time Stream ✅");
+         socket.emit("join_room", { userId: user._id, role: "fleet" });
+       });
+
+       socket.on("driver_location_update", (data) => {
+         setSocketSignals(prev => prev + 1);
+       });
+
+       return () => {
+         socket.disconnect();
+       };
+    }
+  }, [user?._id]);
 
   useEffect(() => {
     const fetchUnread = async () => {
@@ -66,6 +90,23 @@ const Header = memo(({
       </div>
 
       <div className="flex items-center space-x-5 mr-5">
+        {/* LIVE SIGNALS COUNTER */}
+        <div 
+          className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border bg-green-50/50 border-green-100 shadow-sm"
+          title="Live Driver Location Updates Received"
+        >
+          <div className="relative">
+            <Radio className="text-green-600 animate-pulse" size={16} />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border border-white"></span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[9px] font-black text-green-700 uppercase leading-none">Live Signals</span>
+            <span className="text-xs font-black text-gray-900 leading-none mt-0.5">
+              {socketSignals.toLocaleString()}
+            </span>
+          </div>
+        </div>
+
         {/* Notification Button */}
         <button
           onClick={() => navigate("/notifications")}

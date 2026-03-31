@@ -69,25 +69,20 @@ const ChartCard = ({ title, icon: Icon, children, className = "" }) => (
 // ─────────────────────────────────────────────
 // Stat Card Component
 // ─────────────────────────────────────────────
-const StatCard = ({ label, value, icon: Icon, color, trend, subtitle }) => (
-  <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-200 hover:shadow-md transition-all">
-    <div className="flex items-start justify-between mb-3">
-      <div className="p-3 rounded-lg" style={{ backgroundColor: color + '15' }}>
-        <Icon className="text-lg" style={{ color }} />
+const StatCard = ({ label, value, icon: Icon, color }) => (
+  <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100/60 hover:shadow-lg transition-all">
+    <div className="flex items-center gap-2 sm:gap-3">
+      <div className="p-2 sm:p-3 rounded-lg shrink-0" style={{ backgroundColor: color + '15' }}>
+        <Icon className="text-base sm:text-lg" style={{ color }} />
       </div>
-      {trend !== undefined && (
-        <span className={`text-xs font-medium px-2 py-1 rounded-full ${trend > 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-          }`}>
-          {trend > 0 ? '+' : ''}{trend}%
-        </span>
-      )}
+      <div className="min-w-0">
+        <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-tight truncate leading-tight mb-0.5">{label}</p>
+        <div className="flex items-baseline gap-0.5">
+          <span className="text-[10px] sm:text-xs font-bold text-gray-400">₹</span>
+          <p className="text-base sm:text-xl font-black text-gray-900 leading-none">{value}</p>
+        </div>
+      </div>
     </div>
-    <p className="text-xs font-medium text-gray-500 mb-1">{label}</p>
-    <p className="text-2xl font-bold text-gray-900 flex items-center gap-1">
-      <span className="text-gray-400 text-lg">₹</span>
-      {value}
-    </p>
-    {subtitle && <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">{subtitle}</p>}
   </div>
 );
 
@@ -362,12 +357,6 @@ export default function WithdrawMoney() {
       <div className="max-w-8xl mx-auto mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate("/wallet")}
-              className="p-2.5 bg-white rounded-xl border border-gray-200 hover:border-blue-200 hover:text-blue-600 transition-all"
-            >
-              <FaArrowLeft size={14} />
-            </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Withdraw Money</h1>
               <p className="text-sm text-gray-500 mt-1">Withdraw funds to your bank account</p>
@@ -394,32 +383,30 @@ export default function WithdrawMoney() {
       </div>
 
       <div className="max-w-8xl mx-auto">
-        {/* Stats Cards Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* Stats Cards Row - Responsive Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
           <StatCard
-            label="Available Balance"
+            label="Balance"
             value={balance.toLocaleString()}
             icon={FaWallet}
             color={CHART_COLORS.primary}
-            subtitle="Ready for withdrawal"
           />
           <StatCard
-            label="Total Withdrawn"
+            label="Withdrawn"
             value={stats.totalWithdrawn.toLocaleString()}
             icon={Banknote}
             color={CHART_COLORS.success}
-            trend={12}
           />
           <StatCard
-            label="Pending Amount"
+            label="Pending"
             value={stats.pendingAmount.toLocaleString()}
             icon={FaClock}
             color={CHART_COLORS.warning}
           />
           <StatCard
-            label="Success Rate"
-            value={`${stats.successRate}%`}
-            icon={FaCheckCircle}
+            label="History"
+            value={stats.totalRequests.toString()}
+            icon={FaHistory}
             color={CHART_COLORS.purple}
           />
         </div>

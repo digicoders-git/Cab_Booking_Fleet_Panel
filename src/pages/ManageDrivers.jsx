@@ -42,19 +42,29 @@ const ChartCard = ({ title, subtitle, icon: Icon, children }) => (
   </div>
 );
 
-const StatBox = ({ label, value, icon: Icon, color }) => (
-  <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 hover:shadow-lg transition-all">
-    <div className="flex items-center gap-3">
-      <div className={`p-3 rounded-xl bg-${color}-50 text-${color}-600`}>
-        <Icon size={18} />
-      </div>
-      <div>
-        <p className="text-xs font-medium text-gray-500 uppercase">{label}</p>
-        <p className="text-xl font-bold text-gray-900">{value}</p>
+const StatBox = ({ label, value, icon: Icon, color }) => {
+  const colorMap = {
+     blue: { bg: 'bg-blue-50/50', text: 'text-blue-600' },
+     green: { bg: 'bg-emerald-50/50', text: 'text-emerald-600' },
+     orange: { bg: 'bg-orange-50/50', text: 'text-orange-600' },
+     red: { bg: 'bg-red-50/50', text: 'text-red-600' }
+  };
+  const theme = colorMap[color] || colorMap.blue;
+
+  return (
+    <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100/60 hover:shadow-lg transition-all">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className={`p-2 sm:p-3 rounded-lg ${theme.bg} ${theme.text} shrink-0`}>
+          <Icon size={16} className="sm:size-[18px]" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-tight truncate leading-tight mb-0.5">{label}</p>
+          <p className="text-base sm:text-xl font-black text-gray-900 leading-none">{value}</p>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ─────────────────────────────────────────────
 // Forms & Modals
@@ -517,28 +527,53 @@ export default function ManageDrivers() {
   };
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen" style={{ fontFamily: currentFont.family }}>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900">
-            <FaUser className="text-blue-600" />
-            Manage Drivers
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">Total {drivers.length} drivers in fleet</p>
+    <div className="space-y-6 p-4 sm:p-6 bg-gray-50 min-h-screen" style={{ fontFamily: currentFont.family }}>
+      {/* Header - Redesigned for Mobile-First */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5">
+        <div className="flex items-start justify-between w-full sm:w-auto">
+           <div>
+              <h1 className="text-2xl font-bold flex items-center gap-2 text-gray-900 tracking-tight">
+                <FaUser className="text-blue-600" />
+                Manage Drivers
+              </h1>
+              <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1">
+                Total <span className="text-blue-600 font-bold">{drivers.length}</span> drivers in fleet
+              </p>
+           </div>
+           
+           {/* Refresh Button - TOP RIGHT ON MOBILE */}
+           <button
+              onClick={fetchDriversData}
+              className="sm:hidden p-3 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all active:scale-90 text-blue-600"
+              title="Refresh"
+           >
+              <FaSync className={loading ? "animate-spin" : ""} size={16} />
+           </button>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={fetchDriversData} className="p-2 rounded-lg border hover:bg-gray-50 transition-all text-gray-600" title="Refresh">
-            <FaSync />
-          </button>
-          <button onClick={() => { setEditDriver(null); setShowForm(true); }} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all">
-            <FaPlus /> Add New Driver
-          </button>
+
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+           {/* Refresh Button - DESKTOP ONLY */}
+           <button
+            onClick={fetchDriversData}
+            className="hidden sm:flex p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all text-gray-600"
+            title="Refresh"
+           >
+            <FaSync className={loading ? "animate-spin" : ""} />
+           </button>
+
+           {/* Add New Driver Button */}
+           <button
+            onClick={() => { setEditDriver(null); setShowForm(true); }}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl sm:rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95 font-bold text-sm"
+           >
+            <FaPlus size={14} />
+            Add New Driver
+           </button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {/* Stats - Dual Column Grid on Mobile */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatBox label="Total Drivers" value={stats.total} icon={FaUser} color="blue" />
         <StatBox label="Approved" value={stats.approved} icon={FaCheckCircle} color="green" />
         <StatBox label="Pending" value={stats.pending} icon={FaClock} color="orange" />
@@ -601,13 +636,16 @@ export default function ManageDrivers() {
             </button>
           ))}
         </div>
-        <div className="min-w-[900px]">
-          <div className="px-6 py-3 border-b bg-gray-50 text-xs font-semibold text-gray-500 uppercase grid gap-4 items-center" style={{ gridTemplateColumns: "2.5fr 1.5fr 1.5fr 1fr 1fr 1.5fr" }}>
-            <span>Driver Info</span>
-            <span>Contact</span>
-            <span>License / Location</span>
-            <span>Status</span>
-            <span>Registered</span>
+        {/* Responsive Table Container */}
+        <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-blue-400">
+          <div className="min-w-[1200px]">
+          <div className="px-6 py-4 border-b bg-gray-50/50 text-[10px] font-bold text-gray-400 uppercase tracking-widest grid gap-4 items-center" style={{ gridTemplateColumns: "2.5fr 1.5fr 1.5fr 1.2fr 1fr 1fr auto" }}>
+            <span>Driver Performance & Info</span>
+            <span>Contact Details</span>
+            <span>License / City</span>
+            <span>Credentials</span>
+            <span>Approval</span>
+            <span>Registry</span>
             <span className="text-center">Actions</span>
           </div>
 
@@ -620,35 +658,41 @@ export default function ManageDrivers() {
           {!loading && displayedDrivers.map((d, i) => {
             const badge = getStatusBadge(d);
             return (
-              <div key={d._id} className="px-6 py-4 border-b grid gap-4 items-center hover:bg-gray-50 transition-all" style={{ gridTemplateColumns: "2.5fr 1.5fr 1.5fr 1fr 1fr auto", backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#F9FAFB' }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden shrink-0 border border-blue-200">
-                    {d.image ? <img src={`http://localhost:5000/uploads/${d.image}`} alt={d.name} className="w-full h-full object-cover" /> : <FaUser className="text-blue-500" />}
+                <div key={d._id} className="px-6 py-5 border-b grid gap-4 items-center hover:bg-blue-50/30 transition-all duration-300" style={{ gridTemplateColumns: "2.5fr 1.5fr 1.5fr 1.2fr 1fr 1fr auto", backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden shrink-0 border border-blue-200">
+                      {d.image ? <img src={`http://localhost:5000/uploads/${d.image}`} alt={d.name} className="w-full h-full object-cover" /> : <FaUser className="text-blue-500" />}
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm text-gray-900">{d.name}</p>
+                      <p className="text-xs text-gray-500">{d.email}</p>
+                    </div>
                   </div>
+
                   <div>
-                    <p className="font-bold text-sm text-gray-900">{d.name}</p>
-                    <p className="text-xs text-gray-500">{d.email}</p>
+                    <p className="text-sm font-medium text-gray-800 flex items-center gap-1.5"><FaPhoneAlt size={10} className="text-gray-400"/> {d.phone}</p>
                   </div>
-                </div>
 
-                <div>
-                  <p className="text-sm font-medium text-gray-800 flex items-center gap-1.5"><FaPhoneAlt size={10} className="text-gray-400"/> {d.phone}</p>
-                </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-800 flex items-center gap-1.5"><FaIdCard size={12} className="text-gray-400"/> {d.licenseNumber || 'N/A'}</p>
+                    <p className="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5"><FaMapMarkerAlt size={10} className="text-gray-400"/> {d.city || 'N/A'}</p>
+                  </div>
 
-                <div>
-                  <p className="text-sm font-medium text-gray-800 flex items-center gap-1.5"><FaIdCard size={12} className="text-gray-400"/> {d.licenseNumber || 'N/A'}</p>
-                  <p className="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5"><FaMapMarkerAlt size={10} className="text-gray-400"/> {d.city || 'N/A'}{d.state ? `, ${d.state}` : ''}</p>
-                </div>
+                  <div>
+                    <span className="text-sm font-mono bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md border border-blue-100">
+                      {d.password || "—"}
+                    </span>
+                  </div>
 
-                <div>
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide" style={{ backgroundColor: badge.color + '15', color: badge.color }}>
-                    {badge.label}
-                  </span>
-                </div>
+                  <div>
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide" style={{ backgroundColor: badge.color + '15', color: badge.color }}>
+                      {badge.label}
+                    </span>
+                  </div>
 
-                <div>
-                  <p className="text-xs text-gray-600">{new Date(d.createdAt).toLocaleDateString('en-IN')}</p>
-                </div>
+                  <div>
+                    <p className="text-xs text-gray-600">{new Date(d.createdAt).toLocaleDateString('en-IN')}</p>
+                  </div>
 
                 <div className="flex items-center justify-center gap-2">
                   <button onClick={() => setViewDriverId(d._id)} className="p-1.5 rounded-lg border border-blue-100 hover:bg-blue-50 text-blue-600 transition-all group" title="View Details">
@@ -664,6 +708,7 @@ export default function ManageDrivers() {
               </div>
             );
           })}
+          </div>
         </div>
 
         {/* Pagination Footer */}

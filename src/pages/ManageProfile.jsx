@@ -25,6 +25,13 @@ export default function ManageProfile() {
   const [imagePreview, setImagePreview] = useState(null);
   const [activeTab, setActiveTab] = useState('profile'); // profile, bank, security
 
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith("http") || path.startsWith("data:")) return path;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/api$/, '');
+    return `${baseUrl}/uploads/${path}`;
+  };
+
   // States for form fields
   const [name, setName] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -293,7 +300,7 @@ export default function ManageProfile() {
                 <div className="w-24 h-24 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 border-4 border-white shadow-lg overflow-hidden">
                   {imagePreview ? (
                     <img
-                      src={imagePreview}
+                      src={getImageUrl(imagePreview)}
                       alt="Profile"
                       className="w-full h-full object-cover"
                     />

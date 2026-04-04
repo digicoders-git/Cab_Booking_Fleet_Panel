@@ -1,5 +1,8 @@
 // src/pages/ManageAssignments.jsx
 import { useState, useEffect, useCallback, useMemo } from "react";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const imgUrl = (filename) => `${API_BASE}/uploads/${filename}`;
 import { useTheme } from "../context/ThemeContext";
 import { useFont } from "../context/FontContext";
 import { assignmentApi } from "../api/assignmentApi";
@@ -727,8 +730,12 @@ export default function ManageAssignments() {
             >
               {/* Driver */}
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200 shrink-0">
-                  <FaUser className="text-blue-500 text-sm" />
+                <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200 shrink-0 overflow-hidden">
+                  {d.image
+                    ? <img src={imgUrl(d.image)} alt={d.name} className="w-full h-full object-cover" onError={e => { e.currentTarget.style.display='none'; e.currentTarget.parentElement.innerHTML='<svg class="text-blue-500" style="width:16px;height:16px" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>'; }}
+                    />
+                    : <FaUser className="text-blue-500 text-sm" />
+                  }
                 </div>
                 <div>
                   <p className="font-semibold text-sm text-gray-900">{d.name}</p>

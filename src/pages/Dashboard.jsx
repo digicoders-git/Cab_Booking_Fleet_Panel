@@ -75,40 +75,59 @@ const StatCard = ({ label, value, icon: Icon, color, trend }) => (
 const ProfileCard = ({ profile }) => {
   if (!profile) return null;
 
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith("http") || path.startsWith("data:")) return path;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/api$/, '');
+    return `${baseUrl}/uploads/${path}`;
+  };
+
+  const profileImageUrl = getImageUrl(profile.image);
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all">
       <div className="flex items-start gap-4 mb-4">
-        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl">
-          {profile.name?.charAt(0) || 'F'}
-        </div>
-        <div className="flex-1">
-          <h2 className="text-lg font-bold text-gray-900">{profile.name}</h2>
-          <p className="text-sm text-gray-500">{profile.email}</p>
+        {profileImageUrl ? (
+          <div className="w-16 h-16 rounded-full border-2 border-gray-100 shadow-sm overflow-hidden flex-shrink-0">
+            <img 
+              src={profileImageUrl} 
+              alt={profile.name} 
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : (
+          <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+            {profile.name?.charAt(0) || 'F'}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg font-bold text-gray-900 truncate">{profile.name}</h2>
+          <p className="text-xs text-gray-700 font-semibold break-all leading-tight mt-0.5" title={profile.email}>{profile.email}</p>
           <p className="text-sm text-gray-500 mt-1">{profile.phone}</p>
         </div>
-        <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+        <div className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-medium whitespace-nowrap">
           {profile.isActive ? 'Active' : 'Inactive'}
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
         <div>
-          <p className="text-xs text-gray-500 mb-1">Company</p>
-          <p className="text-sm font-medium text-gray-900">{profile.companyName || '—'}</p>
+          <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tight mb-0.5">Company</p>
+          <p className="text-sm font-semibold text-gray-800 truncate">{profile.companyName || '—'}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500 mb-1">Location</p>
-          <p className="text-sm font-medium text-gray-900">{profile.city || '—'}, {profile.state || '—'}</p>
+          <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tight mb-0.5">Location</p>
+          <p className="text-sm font-semibold text-gray-800 truncate">{profile.city || '—'}, {profile.state || '—'}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500 mb-1">Wallet Balance</p>
-          <p className={`text-sm font-medium ${profile.walletBalance < 0 ? 'text-red-600' : 'text-green-600'}`}>
+          <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tight mb-0.5">Wallet Balance</p>
+          <p className={`text-sm font-bold ${profile.walletBalance < 0 ? 'text-red-600' : 'text-emerald-600'}`}>
             ₹{profile.walletBalance?.toLocaleString() || 0}
           </p>
         </div>
         <div>
-          <p className="text-xs text-gray-500 mb-1">Commission</p>
-          <p className="text-sm font-medium text-orange-600">{profile.commissionPercentage || 0}%</p>
+          <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tight mb-0.5">Commission</p>
+          <p className="text-sm font-bold text-orange-500">{profile.commissionPercentage || 0}%</p>
         </div>
       </div>
 

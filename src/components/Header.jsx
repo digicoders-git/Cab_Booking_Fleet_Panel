@@ -22,21 +22,21 @@ const Header = memo(({
   // === SOCKET.IO REAL-TIME TRACKING SIGNALS ===
   useEffect(() => {
     if (user?._id) {
-       // Backend URL: adjust if needed (loading from .env or using localhost:5000)
-       const socket = io("http://localhost:5000");
+      // Backend URL: adjust if needed (loading from .env or using localhost:5000)
+      const socket = io(import.meta.env.VITE_API_BASE_URL || "http://localhost:5000");
 
-       socket.on("connect", () => {
-         console.log("Header: Connected to Real-time Stream ✅");
-         socket.emit("join_room", { userId: user._id, role: "fleet" });
-       });
+      socket.on("connect", () => {
+        console.log("Header: Connected to Real-time Stream ✅");
+        socket.emit("join_room", { userId: user._id, role: "fleet" });
+      });
 
-       socket.on("driver_location_update", (data) => {
-         setSocketSignals(prev => prev + 1);
-       });
+      socket.on("driver_location_update", (data) => {
+        setSocketSignals(prev => prev + 1);
+      });
 
-       return () => {
-         socket.disconnect();
-       };
+      return () => {
+        socket.disconnect();
+      };
     }
   }, [user?._id]);
 
@@ -91,7 +91,7 @@ const Header = memo(({
 
       <div className="flex items-center space-x-5 mr-5">
         {/* LIVE SIGNALS COUNTER */}
-        <div 
+        <div
           className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border bg-green-50/50 border-green-100 shadow-sm"
           title="Live Driver Location Updates Received"
         >

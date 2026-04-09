@@ -23,13 +23,19 @@ export const fleetApi = {
     return response.data;
   },
 
-  // 4. Get Fleet Dashboard Data
+  // 4. Change Password
+  changePassword: async (passwordData) => {
+    const response = await apiClient.put("/api/fleet/profile-update", passwordData);
+    return response.data;
+  },
+
+  // 5. Get Fleet Dashboard Data
   getDashboard: async () => {
     const response = await apiClient.get("/api/fleet/dashboard");
     return response.data;
   },
 
-  // 5. Get Fleet Performance Report
+  // 6. Get Fleet Performance Report
   getPerformanceReport: async () => {
     const response = await apiClient.get("/api/fleet/performance");
     return response.data;

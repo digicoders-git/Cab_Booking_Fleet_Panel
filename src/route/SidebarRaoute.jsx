@@ -1,5 +1,5 @@
 import { lazy } from "react";
-import { FaTachometerAlt, FaCar, FaUser, FaLink, FaWallet, FaHandHoldingUsd, FaBell, FaChartBar, FaUserCircle, FaMapMarkedAlt } from "react-icons/fa";
+import { FaTachometerAlt, FaCar, FaUser, FaLink, FaWallet, FaHandHoldingUsd, FaBell, FaChartBar, FaUserCircle, FaMapMarkedAlt, FaCheckCircle } from "react-icons/fa";
 
 const Dashboard = lazy(() => import("../pages/Dashboard"));
 const LiveMonitoring = lazy(() => import("../pages/LiveMonitoring"));
@@ -11,6 +11,8 @@ const WithdrawMoney = lazy(() => import("../pages/WithdrawMoney"));
 const ManageNotifications = lazy(() => import("../pages/ManageNotifications"));
 const ManageReports = lazy(() => import("../pages/ManageReports"));
 const ManageProfile = lazy(() => import("../pages/ManageProfile"));
+const BulkMarketplace = lazy(() => import("../pages/BulkMarketplace"));
+const MyBulkRides = lazy(() => import("../pages/MyBulkRides"));
 
 const routes = [
   { path: "/dashboard", component: Dashboard, name: "Dashboard", icon: FaTachometerAlt },
@@ -23,6 +25,8 @@ const routes = [
   { path: "/notifications", component: ManageNotifications, name: "Notifications", icon: FaBell },
   { path: "/profile", component: ManageProfile, name: "Profile", icon: FaUserCircle },
   { path: "/reports", component: ManageReports, name: "Reports", icon: FaChartBar },
+  { path: "/bulk-marketplace", component: BulkMarketplace, name: "Bulk Marketplace", icon: FaWallet },
+  { path: "/my-bulk-assignments", component: MyBulkRides, name: "My Bulk Rides", icon: FaCheckCircle },
 
 ];
 

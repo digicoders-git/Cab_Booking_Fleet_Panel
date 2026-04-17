@@ -8,65 +8,31 @@ import { useFont } from "../context/FontContext";
 import { carsApi } from "../api/carsApi";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
-import Highcharts from 'highcharts';
-import HighchartsReact from 'highcharts-react-official';
 import {
   FaCar, FaPlus, FaEdit, FaTrash, FaEye, FaSync,
   FaSearch, FaTimes, FaCheckCircle, FaClock,
   FaExclamationTriangle, FaShieldAlt, FaCalendarAlt,
-  FaFilter, FaChartPie, FaChartBar, FaChartLine,
+  FaFilter,
   FaUsers, FaMoneyBillWave, FaTachometerAlt, FaChair,
   FaImage, FaTag, FaGasPump, FaCogs, FaWrench,
   FaUser, FaEnvelope, FaPhone
 } from "react-icons/fa";
 import { Eye, Pencil, Trash2, Plus, Search, X, CheckCircle, Clock, AlertTriangle, Filter, Database, Menu, Grid, List as ListIcon, ShieldCheck, Mail, Phone, MapPin, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
-// Chart Colors
-const CHART_COLORS = {
-  primary: '#3B82F6',
-  success: '#10B981',
-  warning: '#F59E0B',
-  danger: '#EF4444',
-  purple: '#8B5CF6',
-  cyan: '#06B6D4',
-  orange: '#F97316',
-  teal: '#14B8A6',
-  pink: '#EC4899',
-  indigo: '#6366F1',
-  gray: '#94A3B8'
-};
-
-// ─────────────────────────────────────────────
-// Chart Components
-// ─────────────────────────────────────────────
-const ChartCard = ({ title, subtitle, icon: Icon, children }) => (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-lg transition-all">
-    <div className="flex items-center justify-between mb-4">
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-        <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
-      </div>
-      <div className="p-2 bg-blue-50 rounded-lg">
-        <Icon className="text-blue-600" size={16} />
-      </div>
-    </div>
-    {children}
-  </div>
-);
-
 // ─────────────────────────────────────────────
 // StatBox Component
 // ─────────────────────────────────────────────
 const StatBox = ({ label, value, icon: Icon, color }) => (
-  <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 hover:shadow-lg transition-all">
-    <div className="flex items-center gap-2 sm:gap-3">
-      <div className="p-2 sm:p-3 rounded-lg shrink-0" style={{ backgroundColor: color + '15' }}>
-        <Icon className="text-base sm:text-lg" style={{ color }} />
+  <div
+    className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+    style={{ borderColor: '#e5e7eb', boxShadow: `0 4px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)` }}
+  >
+    <div className="p-5 sm:p-6">
+      <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-sm" style={{ backgroundColor: color + '20' }}>
+        <Icon size={22} style={{ color }} />
       </div>
-      <div className="min-w-0">
-        <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase truncate leading-tight mb-0.5">{label}</p>
-        <p className="text-base sm:text-xl font-black text-gray-900 leading-none">{value}</p>
-      </div>
+      <p className="text-3xl sm:text-4xl font-black text-gray-900 leading-none mb-2">{value}</p>
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</p>
     </div>
   </div>
 );
@@ -533,88 +499,67 @@ const CarRow = ({ car, categories, onView, onEdit, onDelete }) => {
   };
 
   return (
-    <>
-      {/* Main Row */}
       <div
-        className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors items-center"
+        className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-gray-100 hover:bg-blue-50/20 transition-all duration-200 items-center"
+        style={{ backgroundColor: '#ffffff' }}
       >
-        {/* Car Info with Image */}
+        {/* Car Info */}
         <div className="col-span-4 flex items-center gap-3">
-          <div className="w-12 h-10 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center overflow-hidden shrink-0">
+          <div className="w-12 h-10 rounded-xl bg-blue-50 border-2 border-blue-100 flex items-center justify-center overflow-hidden shrink-0">
             {car.image
-              ? <img
-                  src={imgUrl(car.image)}
-                  alt={car.carNumber}
-                  className="w-full h-full object-cover"
+              ? <img src={imgUrl(car.image)} alt={car.carNumber} className="w-full h-full object-cover"
                   onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.parentElement.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="text-blue-400" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>'; }}
                 />
-              : <FaCar className="text-blue-400 text-lg" />
+              : <FaCar className="text-blue-400" size={18} />
             }
           </div>
           <div className="min-w-0">
-            <p className="font-bold text-sm text-blue-600 truncate">{car.carNumber}</p>
-            <p className="text-xs text-gray-500 truncate">{car.carModel}{car.carBrand ? ` (${car.carBrand})` : ''}</p>
+            <p className="font-bold text-sm text-gray-900 truncate">{car.carNumber}</p>
+            <p className="text-xs text-gray-400 truncate mt-0.5">{car.carModel}{car.carBrand ? ` · ${car.carBrand}` : ''}</p>
           </div>
         </div>
 
         {/* Pricing */}
-        <div className="col-span-2">
-          <p className="text-xs font-medium">
-            <span className="text-green-600">Base: ₹{category.baseFare || 0}</span>
-          </p>
-          <p className="text-xs text-gray-500">Private: ₹{category.privateRatePerKm || 0}/km</p>
-          <p className="text-xs text-gray-500">Shared: ₹{category.sharedRatePerSeatPerKm || 0}/km</p>
+        <div className="col-span-2 space-y-0.5">
+          <p className="text-sm font-bold text-emerald-600">₹{category.baseFare || 0}</p>
+          <p className="text-xs text-gray-400">₹{category.privateRatePerKm || 0}/km pvt</p>
+          <p className="text-xs text-gray-400">₹{category.sharedRatePerSeatPerKm || 0}/km shared</p>
         </div>
 
-        {/* Seat Layout Preview */}
+        {/* Seat Layout */}
         <div className="col-span-2">
-          <p className="text-xs text-gray-700">{getLayoutPreview()}</p>
+          <p className="text-sm font-semibold text-gray-700">{getLayoutPreview()}</p>
           {category.seatLayout?.length > 2 && (
-            <p className="text-xs text-gray-400 mt-1">+{category.seatLayout.length - 2} more</p>
+            <p className="text-xs text-gray-400 mt-0.5">+{category.seatLayout.length - 2} more</p>
           )}
         </div>
 
-        {/* Status Badge */}
+        {/* Status */}
         <div className="col-span-1">
-          <span
-            className="px-2 py-1 inline-block rounded-full text-[10px] font-medium"
-            style={{ backgroundColor: badge.color + '15', color: badge.color }}
-          >
+          <span className="px-2.5 py-1 rounded-full text-[11px] font-bold" style={{ backgroundColor: badge.color + '18', color: badge.color }}>
             {badge.label}
           </span>
         </div>
 
-        {/* Created Date */}
+        {/* Added On */}
         <div className="col-span-1">
-          <p className="text-xs text-gray-600">{fmtDate(car.createdAt)}</p>
+          <p className="text-xs font-medium text-gray-500">{fmtDate(car.createdAt)}</p>
         </div>
 
-        <div className="col-span-2 flex items-center justify-center gap-2">
-          <button
-            onClick={(e) => { e.stopPropagation(); onView(car); }}
-            className="p-1.5 rounded-lg border border-blue-100 hover:bg-blue-50 transition-all text-blue-600 group"
-            title="View Details"
-          >
-            <Eye size={16} className="group-hover:scale-110 transition-transform" />
+        {/* Actions */}
+        <div className="col-span-2 flex items-center justify-center gap-1.5">
+          <button onClick={(e) => { e.stopPropagation(); onView(car); }} className="p-2 rounded-xl border border-blue-100 bg-blue-50 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-blue-600 transition-all duration-200" title="View">
+            <Eye size={14} />
           </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onEdit(car); }}
-            className="p-1.5 rounded-lg border border-orange-100 hover:bg-orange-50 transition-all text-orange-600 group"
-            title="Edit"
-          >
-            <Pencil size={16} className="group-hover:scale-110 transition-transform" />
+          <button onClick={(e) => { e.stopPropagation(); onEdit(car); }} className="p-2 rounded-xl border border-amber-100 bg-amber-50 hover:bg-amber-500 hover:text-white hover:border-amber-500 text-amber-600 transition-all duration-200" title="Edit">
+            <Pencil size={14} />
           </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(car); }}
-            className="p-1.5 rounded-lg border border-red-100 hover:bg-red-50 transition-all text-red-600 group"
-            title="Delete"
-          >
-            <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
+          <button onClick={(e) => { e.stopPropagation(); onDelete(car); }} className="p-2 rounded-xl border border-red-100 bg-red-50 hover:bg-red-500 hover:text-white hover:border-red-500 text-red-500 transition-all duration-200" title="Delete">
+            <Trash2 size={14} />
           </button>
         </div>
       </div>
-    </>
-  );
+    );
 };
 
 // ─────────────────────────────────────────────
@@ -629,7 +574,6 @@ export default function ManageCars() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [categories, setCategories] = useState([]);
-
   const [showForm, setShowForm] = useState(false);
   const [editCar, setEditCar] = useState(null);
   const [viewCar, setViewCar] = useState(null);
@@ -766,98 +710,11 @@ export default function ManageCars() {
   }, [search, filter, itemsPerPage]);
 
   // Stats
-  const stats = useMemo(() => ({
-    total: cars.length,
+  const stats = useMemo(() => ({    total: cars.length,
     available: cars.filter(c => c.isAvailable && c.isActive).length,
     busy: cars.filter(c => c.isBusy).length,
     inactive: cars.filter(c => !c.isActive).length
   }), [cars]);
-
-  // Chart Data
-  const statusData = [
-    { name: 'Available', value: stats.available, color: CHART_COLORS.success },
-    { name: 'On Trip', value: stats.busy, color: CHART_COLORS.warning },
-    { name: 'Inactive', value: stats.inactive, color: CHART_COLORS.gray }
-  ].filter(item => item.value > 0);
-
-  const categoryData = useMemo(() => {
-    const catMap = {};
-    cars.forEach(car => {
-      const category = categories.find(c => c._id === (car.carType?._id || car.carType));
-      const catName = category?.name || 'Unknown';
-      catMap[catName] = (catMap[catName] || 0) + 1;
-    });
-    return Object.entries(catMap).map(([name, count]) => ({ name, count }));
-  }, [cars, categories]);
-
-  const earningsData = [...cars]
-    .sort((a, b) => (b.totalEarnings || 0) - (a.totalEarnings || 0))
-    .slice(0, 5)
-    .map(car => ({
-      name: car.carNumber,
-      earnings: car.totalEarnings || 0
-    }));
-
-  // === HIGHCHARTS CONFIG ===
-  const pieOptions = {
-    chart: { type: 'pie', height: 220, style: { fontFamily: currentFont.family }, margin: [0, 0, 0, 0] },
-    title: { text: null },
-    tooltip: { pointFormat: '{point.name}: <b>{point.y}</b> Cars ({point.percentage:.1f}%)' },
-    plotOptions: {
-      pie: {
-        innerRadius: '60%',
-        size: '100%',
-        dataLabels: { enabled: false },
-        showInLegend: true
-      }
-    },
-    series: [{
-      name: 'Status',
-      colorByPoint: true,
-      data: statusData.map(d => ({ name: d.name, y: d.value, color: d.color }))
-    }],
-    legend: { enabled: true, layout: 'vertical', align: 'right', verticalAlign: 'middle' },
-    credits: { enabled: false },
-    exporting: { enabled: false }
-  };
-
-  const barOptions = {
-    chart: { type: 'column', height: 220, style: { fontFamily: currentFont.family }, margin: [10, 10, 30, 30] },
-    title: { text: null },
-    xAxis: { categories: categoryData.map(d => d.name) },
-    yAxis: { title: { text: null }, allowDecimals: false },
-    legend: { enabled: false },
-    tooltip: { pointFormat: 'Total: <b>{point.y}</b> Cars' },
-    plotOptions: { column: { borderRadius: 4, color: CHART_COLORS.primary } },
-    series: [{ name: 'Cars By Category', data: categoryData.map(d => d.count) }],
-    credits: { enabled: false },
-    exporting: { enabled: false }
-  };
-
-  const areaOptions = {
-    chart: { type: 'areaspline', height: 220, style: { fontFamily: currentFont.family }, margin: [10, 10, 30, 40] },
-    title: { text: null },
-    xAxis: { categories: earningsData.map(d => d.name) },
-    yAxis: { title: { text: null } },
-    legend: { enabled: false },
-    tooltip: { pointFormat: 'Earnings: <b>₹{point.y}</b>' },
-    plotOptions: {
-      areaspline: {
-        fillColor: {
-          linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
-          stops: [
-            [0, 'rgba(16, 185, 129, 0.4)'],
-            [1, 'rgba(16, 185, 129, 0.0)']
-          ]
-        },
-        marker: { radius: 3 },
-        lineWidth: 2,
-        color: CHART_COLORS.success
-      }
-    },
-    series: [{ name: 'Earnings', data: earningsData.map(d => d.earnings) }],
-    credits: { enabled: false }
-  };
 
   return (
     <div className="space-y-6 p-4 sm:p-6 bg-gray-50 min-h-screen" style={{ fontFamily: currentFont.family }}>
@@ -875,26 +732,10 @@ export default function ManageCars() {
               </p>
            </div>
            
-           {/* Refresh Button - TOP RIGHT ON MOBILE */}
-           <button
-              onClick={fetchCars}
-              className="sm:hidden p-3 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all active:scale-90 text-blue-600"
-              title="Refresh"
-           >
-              <FaSync className={loading ? "animate-spin" : ""} size={16} />
-           </button>
+
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">
-           {/* Refresh Button - DESKTOP ONLY */}
-           <button
-            onClick={fetchCars}
-            className="hidden sm:flex p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all text-gray-600"
-            title="Refresh"
-           >
-            <FaSync className={loading ? "animate-spin" : ""} />
-           </button>
-
            {/* Add New Car - STAYS AS PRIMARY CTA */}
            <button
             onClick={() => { setEditCar(null); setShowForm(true); }}
@@ -906,25 +747,12 @@ export default function ManageCars() {
         </div>
       </div>
 
-      {/* Stats Cards - Optimized for Mobile Grid */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <StatBox label="Total Cars" value={stats.total} icon={FaCar} color={CHART_COLORS.primary} />
-        <StatBox label="Available" value={stats.available} icon={FaCheckCircle} color={CHART_COLORS.success} />
-        <StatBox label="On Trip" value={stats.busy} icon={FaClock} color={CHART_COLORS.warning} />
-        <StatBox label="Inactive" value={stats.inactive} icon={FaExclamationTriangle} color={CHART_COLORS.danger} />
-      </div>
-
-      {/* Charts Section - 2 Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Chart 1: Status Distribution */}
-        <ChartCard title="Car Status" subtitle="Distribution by status" icon={FaChartPie}>
-          <HighchartsReact highcharts={Highcharts} options={pieOptions} />
-        </ChartCard>
-
-        {/* Chart 2: Top Earners */}
-        <ChartCard title="Top Earners" subtitle="Highest earning cars" icon={FaChartLine}>
-          <HighchartsReact highcharts={Highcharts} options={areaOptions} />
-        </ChartCard>
+        <StatBox label="Total Cars" value={stats.total} icon={FaCar} color="#3B82F6" />
+        <StatBox label="Available" value={stats.available} icon={FaCheckCircle} color="#10B981" />
+        <StatBox label="On Trip" value={stats.busy} icon={FaClock} color="#F59E0B" />
+        <StatBox label="Inactive" value={stats.inactive} icon={FaExclamationTriangle} color="#EF4444" />
       </div>
 
       {/* Search + Filter */}
@@ -983,8 +811,8 @@ export default function ManageCars() {
         <div className="overflow-x-auto">
           <div className="min-w-[1000px]">
             {/* Table Header */}
-            <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase">
-              <div className="col-span-4">Car / Image</div>
+            <div className="grid grid-cols-12 gap-4 px-6 py-4 bg-gray-50 border-b border-gray-200 text-xs font-extrabold text-gray-600 uppercase tracking-widest">
+              <div className="col-span-4">Car Info</div>
               <div className="col-span-2">Pricing</div>
               <div className="col-span-2">Seat Layout</div>
               <div className="col-span-1">Status</div>

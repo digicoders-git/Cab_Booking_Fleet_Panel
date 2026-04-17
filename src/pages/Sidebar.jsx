@@ -61,10 +61,9 @@ const SidebarItem = memo(({ route, isActive, themeColors, onClose, currentPath, 
                 }}
               />
             </div>
-            <span 
-              className={`font-medium text-sm transition-all duration-300 whitespace-nowrap overflow-hidden ${
-                isExpanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0"
-              }`}
+            <span
+              className={`font-medium text-sm transition-all duration-300 whitespace-nowrap overflow-hidden ${isExpanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0"
+                }`}
             >
               {route.name}
             </span>
@@ -127,10 +126,9 @@ const SidebarItem = memo(({ route, isActive, themeColors, onClose, currentPath, 
           }}
         />
       </div>
-      <span 
-        className={`font-medium text-sm transition-all duration-300 whitespace-nowrap overflow-hidden ${
-          isExpanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0"
-        }`}
+      <span
+        className={`font-medium text-sm transition-all duration-300 whitespace-nowrap overflow-hidden ${isExpanded ? "opacity-100 w-auto ml-1" : "opacity-0 w-0"
+          }`}
       >
         {route.name}
       </span>
@@ -181,11 +179,9 @@ const Sidebar = ({
       <div
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`fixed inset-y-0 left-0 z-50 transform ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 lg:static lg:inset-0 transition-all duration-300 ease-in-out ${
-          isExpanded ? "w-64" : "w-24"
-        } flex flex-col border-r overflow-x-hidden`}
+        className={`fixed inset-y-0 left-0 z-50 transform ${isOpen ? "translate-x-0" : "-translate-x-full"
+          } lg:translate-x-0 lg:static lg:inset-0 transition-all duration-300 ease-in-out ${isExpanded ? "w-64" : "w-28"
+          } flex flex-col border-r overflow-x-hidden`}
         style={{
           backgroundColor: themeColors.surface,
           borderColor: themeColors.border,
@@ -198,9 +194,9 @@ const Sidebar = ({
           style={{ borderColor: themeColors.border }}
         >
           <div className="flex items-center">
-            <div 
+            <div
               className="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center mr-0 transition-all duration-300"
-              style={{ 
+              style={{
                 backgroundColor: themeColors.primary,
                 marginRight: isExpanded ? "12px" : "0"
               }}
@@ -208,9 +204,8 @@ const Sidebar = ({
               <span className="text-white font-bold text-sm">C</span>
             </div>
             <h1
-              className={`text-lg font-bold transition-all duration-300 whitespace-nowrap overflow-hidden ${
-                isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0"
-              }`}
+              className={`text-lg font-bold transition-all duration-300 whitespace-nowrap overflow-hidden ${isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0"
+                }`}
               style={{ color: themeColors.primary }}
             >
               Cab booking
@@ -229,8 +224,13 @@ const Sidebar = ({
           </button>
         </div>
 
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto py-6 scrollbar-hide">
+        {/* Navigation - Scrollbar Hidden */}
+        <div className="flex-1 overflow-y-auto py-6" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <style>{`
+            div::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
           <nav className="px-3 space-y-2" aria-label="Main navigation">
             {visibleRoutes.map((route) => (
               <SidebarItem
@@ -267,9 +267,8 @@ const Sidebar = ({
             >
               <FaUserCircle className="text-lg" />
             </div>
-            <div className={`flex-1 min-w-0 transition-all duration-300 overflow-hidden ${
-              isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0"
-            }`}>
+            <div className={`flex-1 min-w-0 transition-all duration-300 overflow-hidden ${isExpanded ? "opacity-100 w-auto" : "opacity-0 w-0"
+              }`}>
               <p
                 className="font-medium text-sm truncate"
                 style={{ color: themeColors.text }}
@@ -309,9 +308,8 @@ const Sidebar = ({
             <div className="min-w-[40px] flex-shrink-0 flex justify-center">
               <FaSignOutAlt className="text-sm" />
             </div>
-            <span className={`text-sm font-medium transition-all duration-300 overflow-hidden ${
-              isExpanded ? "opacity-100 w-auto ml-2" : "opacity-0 w-0"
-            }`}>Sign Out</span>
+            <span className={`text-sm font-medium transition-all duration-300 overflow-hidden ${isExpanded ? "opacity-100 w-auto ml-2" : "opacity-0 w-0"
+              }`}>Sign Out</span>
           </button>
         </div>
       </div>

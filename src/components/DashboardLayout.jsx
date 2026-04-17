@@ -7,6 +7,9 @@ import { useLocation, useNavigate, Outlet } from "react-router-dom";
 import routes from ".././route/SidebarRaoute";
 import Sidebar from "../pages/Sidebar";
 import Header from "./Header";
+import { fleetApi } from "../api/fleetApi";
+import { requestForToken, onMessageListener } from "../firebase";
+import { toast } from "sonner";
 
 const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -40,6 +43,47 @@ const DashboardLayout = () => {
     logout();
     navigate("/login", { replace: true });
   }, [logout, navigate]);
+
+  // --- FCM TOKEN REGISTRATION ---
+  useEffect(() => {
+    const fleetId = user?._id || user?.id;
+    if (!fleetId) return;
+
+    const setupFCM = async (retries = 3) => {
+      try {
+        if ('serviceWorker' in navigator) {
+          await navigator.serviceWorker.ready;
+        }
+        const token = await requestForToken();
+        if (token) {
+          await fleetApi.updateFcmToken(token);
+          console.log("🚀 Fleet FCM Token synchronized with backend");
+        } else if (retries > 0) {
+          console.log(`⚠️ Token not received, retrying... (${retries} left)`);
+          setTimeout(() => setupFCM(retries - 1), 5000);
+        }
+      } catch (error) {
+        console.error("Fleet FCM Registration failed:", error);
+      }
+    };
+
+    setupFCM();
+
+    // Foreground notification listener
+    const unsubscribe = onMessageListener((payload) => {
+        console.log("🔔 Fleet Push Notification received:", payload);
+        toast.info(payload.notification.title, {
+            description: payload.notification.body,
+            style: { background: '#2563eb', color: '#fff' }
+        });
+    });
+
+    return () => {
+      if (unsubscribe && typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
+  }, [user?._id]);
 
   return (
     <div

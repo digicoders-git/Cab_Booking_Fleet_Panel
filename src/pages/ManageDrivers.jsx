@@ -3,12 +3,10 @@ import { useTheme } from "../context/ThemeContext";
 import { useFont } from "../context/FontContext";
 import { driversApi } from "../api/driversApi";
 import { toast } from "sonner";
-import Highcharts from "highcharts";
-import HighchartsReact from "highcharts-react-official";
 import {
   FaUser, FaPlus, FaEdit, FaTrash, FaEye, FaSync,
   FaSearch, FaTimes, FaCheckCircle, FaClock,
-  FaExclamationTriangle, FaChartPie, FaChartBar,
+  FaExclamationTriangle,
   FaIdCard, FaMapMarkerAlt, FaPhoneAlt, FaEnvelope, FaImage
 } from "react-icons/fa";
 import { Eye, Pencil, Trash2, Plus, Search, X, CheckCircle, Clock, AlertTriangle, Filter, Database, Menu, Grid, List as ListIcon, ShieldCheck, Mail, Phone, MapPin, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Calendar, User } from "lucide-react";
@@ -27,40 +25,23 @@ const CHART_COLORS = {
 // ─────────────────────────────────────────────
 // UI Components
 // ─────────────────────────────────────────────
-const ChartCard = ({ title, subtitle, icon: Icon, children }) => (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-lg transition-all">
-    <div className="flex items-center justify-between mb-4">
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-        <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
-      </div>
-      <div className="p-2 bg-blue-50 rounded-lg">
-        <Icon className="text-blue-600" size={16} />
-      </div>
-    </div>
-    {children}
-  </div>
-);
-
 const StatBox = ({ label, value, icon: Icon, color }) => {
   const colorMap = {
-     blue: { bg: 'bg-blue-50/50', text: 'text-blue-600' },
-     green: { bg: 'bg-emerald-50/50', text: 'text-emerald-600' },
-     orange: { bg: 'bg-orange-50/50', text: 'text-orange-600' },
-     red: { bg: 'bg-red-50/50', text: 'text-red-600' }
+    blue:   { bg: 'bg-blue-100',    text: 'text-blue-600',    bar: 'bg-blue-500',    shadow: 'hover:shadow-blue-100' },
+    green:  { bg: 'bg-emerald-100', text: 'text-emerald-600', bar: 'bg-emerald-500', shadow: 'hover:shadow-emerald-100' },
+    orange: { bg: 'bg-orange-100',  text: 'text-orange-600',  bar: 'bg-orange-500',  shadow: 'hover:shadow-orange-100' },
+    red:    { bg: 'bg-red-100',     text: 'text-red-600',     bar: 'bg-red-500',     shadow: 'hover:shadow-red-100' },
   };
-  const theme = colorMap[color] || colorMap.blue;
+  const t = colorMap[color] || colorMap.blue;
 
   return (
-    <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100/60 hover:shadow-lg transition-all">
-      <div className="flex items-center gap-2 sm:gap-3">
-        <div className={`p-2 sm:p-3 rounded-lg ${theme.bg} ${theme.text} shrink-0`}>
-          <Icon size={16} className="sm:size-[18px]" />
+    <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl ${t.shadow} transition-all duration-300 hover:-translate-y-1 overflow-hidden`}>
+      <div className="p-5 sm:p-6">
+        <div className={`w-12 h-12 rounded-xl ${t.bg} ${t.text} flex items-center justify-center mb-4 shadow-sm`}>
+          <Icon size={22} />
         </div>
-        <div className="min-w-0">
-          <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-tight truncate leading-tight mb-0.5">{label}</p>
-          <p className="text-base sm:text-xl font-black text-gray-900 leading-none">{value}</p>
-        </div>
+        <p className="text-3xl sm:text-4xl font-black text-gray-900 leading-none mb-2">{value}</p>
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</p>
       </div>
     </div>
   );
@@ -483,43 +464,6 @@ export default function ManageDrivers() {
     pending: drivers.filter(d => !d.isApproved && !d.isRejected).length,
   }), [drivers]);
 
-  // Highcharts Config
-  const statusData = [
-    { name: 'Approved', value: stats.approved, color: CHART_COLORS.success },
-    { name: 'Pending', value: stats.pending, color: CHART_COLORS.warning },
-    { name: 'Rejected', value: drivers.filter(d => d.isRejected).length, color: CHART_COLORS.danger }
-  ].filter(i => i.value > 0);
-
-  const cityMap = {};
-  drivers.forEach(d => {
-    if (d.city) cityMap[d.city] = (cityMap[d.city] || 0) + 1;
-  });
-  const cityData = Object.entries(cityMap).map(([name, count]) => ({ name, count }));
-
-  const pieOptions = {
-    chart: { type: 'pie', height: 220, style: { fontFamily: currentFont.family }, margin: [0, 0, 0, 0] },
-    title: { text: null },
-    tooltip: { pointFormat: '{point.name}: <b>{point.y}</b> Drivers' },
-    plotOptions: { pie: { innerRadius: '60%', size: '100%', dataLabels: { enabled: false }, showInLegend: true } },
-    series: [{ name: 'Status', colorByPoint: true, data: statusData.map(d => ({ name: d.name, y: d.value, color: d.color })) }],
-    legend: { enabled: true, layout: 'vertical', align: 'right', verticalAlign: 'middle' },
-    credits: { enabled: false },
-    exporting: { enabled: false }
-  };
-
-  const barOptions = {
-    chart: { type: 'column', height: 220, style: { fontFamily: currentFont.family }, margin: [10, 10, 30, 30] },
-    title: { text: null },
-    xAxis: { categories: cityData.map(d => d.name) },
-    yAxis: { title: { text: null }, allowDecimals: false },
-    legend: { enabled: false },
-    tooltip: { pointFormat: 'Total: <b>{point.y}</b> Drivers' },
-    plotOptions: { column: { borderRadius: 4, color: CHART_COLORS.primary } },
-    series: [{ name: 'Drivers By City', data: cityData.map(d => d.count) }],
-    credits: { enabled: false },
-    exporting: { enabled: false }
-  };
-
   const getStatusBadge = (d) => {
     if (d.isApproved) return { label: "Approved", color: "#10B981" };
     if (d.isRejected) return { label: "Rejected", color: "#EF4444" };
@@ -540,27 +484,9 @@ export default function ManageDrivers() {
                 Total <span className="text-blue-600 font-bold">{drivers.length}</span> drivers in fleet
               </p>
            </div>
-           
-           {/* Refresh Button - TOP RIGHT ON MOBILE */}
-           <button
-              onClick={fetchDriversData}
-              className="sm:hidden p-3 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all active:scale-90 text-blue-600"
-              title="Refresh"
-           >
-              <FaSync className={loading ? "animate-spin" : ""} size={16} />
-           </button>
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">
-           {/* Refresh Button - DESKTOP ONLY */}
-           <button
-            onClick={fetchDriversData}
-            className="hidden sm:flex p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all text-gray-600"
-            title="Refresh"
-           >
-            <FaSync className={loading ? "animate-spin" : ""} />
-           </button>
-
            {/* Add New Driver Button */}
            <button
             onClick={() => { setEditDriver(null); setShowForm(true); }}
@@ -578,16 +504,6 @@ export default function ManageDrivers() {
         <StatBox label="Approved" value={stats.approved} icon={FaCheckCircle} color="green" />
         <StatBox label="Pending" value={stats.pending} icon={FaClock} color="orange" />
         <StatBox label="Rejected" value={drivers.filter(d=>d.isRejected).length} icon={FaExclamationTriangle} color="red" />
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Driver Status" subtitle="Approval Distribution" icon={FaChartPie}>
-          <HighchartsReact highcharts={Highcharts} options={pieOptions} />
-        </ChartCard>
-        <ChartCard title="Drivers by City" subtitle="City-wise distribution" icon={FaChartBar}>
-          <HighchartsReact highcharts={Highcharts} options={barOptions} />
-        </ChartCard>
       </div>
 
       {/* Search & Filters */}
@@ -639,13 +555,13 @@ export default function ManageDrivers() {
         {/* Responsive Table Container */}
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-blue-400">
           <div className="min-w-[1200px]">
-          <div className="px-6 py-4 border-b bg-gray-50/50 text-[10px] font-bold text-gray-400 uppercase tracking-widest grid gap-4 items-center" style={{ gridTemplateColumns: "2.5fr 1.5fr 1.5fr 1.2fr 1fr 1fr auto" }}>
-            <span>Driver Performance & Info</span>
-            <span>Contact Details</span>
+          <div className="px-6 py-4 border-b bg-gray-50 text-xs font-extrabold text-gray-600 uppercase tracking-widest grid gap-4 items-center" style={{ gridTemplateColumns: "2.5fr 1.5fr 1.5fr 1.2fr 1fr 1fr auto" }}>
+            <span>Driver Info</span>
+            <span>Contact</span>
             <span>License / City</span>
             <span>Credentials</span>
-            <span>Approval</span>
-            <span>Registry</span>
+            <span>Status</span>
+            <span>Joined</span>
             <span className="text-center">Actions</span>
           </div>
 
@@ -658,54 +574,68 @@ export default function ManageDrivers() {
           {!loading && displayedDrivers.map((d, i) => {
             const badge = getStatusBadge(d);
             return (
-                <div key={d._id} className="px-6 py-5 border-b grid gap-4 items-center hover:bg-blue-50/30 transition-all duration-300" style={{ gridTemplateColumns: "2.5fr 1.5fr 1.5fr 1.2fr 1fr 1fr auto", backgroundColor: i % 2 === 0 ? '#FFFFFF' : '#FAFBFC' }}>
+                <div key={d._id} className="px-6 py-4 border-b border-gray-100 grid gap-4 items-center hover:bg-blue-50/20 transition-all duration-200" style={{ gridTemplateColumns: "2.5fr 1.5fr 1.5fr 1.2fr 1fr 1fr auto", backgroundColor: i % 2 === 0 ? '#ffffff' : '#f9fafb' }}>
+                  {/* Driver Info */}
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden shrink-0 border border-blue-200">
-                      {d.image ? <img src={`${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}/uploads/${d.image}`} alt={d.name} className="w-full h-full object-cover" /> : <FaUser className="text-blue-500" />}
+                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden shrink-0 border-2 border-blue-200">
+                      {d.image ? <img src={`${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}/uploads/${d.image}`} alt={d.name} className="w-full h-full object-cover" /> : <FaUser className="text-blue-400" size={15} />}
                     </div>
                     <div>
-                      <p className="font-bold text-sm text-gray-900">{d.name}</p>
-                      <p className="text-xs text-gray-500">{d.email}</p>
+                      <p className="font-bold text-sm text-gray-900 leading-tight">{d.name}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{d.email}</p>
                     </div>
                   </div>
 
-                  <div>
-                    <p className="text-sm font-medium text-gray-800 flex items-center gap-1.5"><FaPhoneAlt size={10} className="text-gray-400"/> {d.phone}</p>
+                  {/* Contact */}
+                  <div className="flex items-center gap-1.5">
+                    <FaPhoneAlt size={10} className="text-blue-400 shrink-0" />
+                    <p className="text-sm font-semibold text-gray-700">{d.phone}</p>
                   </div>
 
+                  {/* License / City */}
                   <div>
-                    <p className="text-sm font-medium text-gray-800 flex items-center gap-1.5"><FaIdCard size={12} className="text-gray-400"/> {d.licenseNumber || 'N/A'}</p>
-                    <p className="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5"><FaMapMarkerAlt size={10} className="text-gray-400"/> {d.city || 'N/A'}</p>
+                    <p className="text-sm font-semibold text-gray-700 flex items-center gap-1.5">
+                      <FaIdCard size={11} className="text-indigo-400 shrink-0" />
+                      {d.licenseNumber || <span className="text-gray-300">N/A</span>}
+                    </p>
+                    <p className="text-xs text-gray-400 flex items-center gap-1.5 mt-0.5">
+                      <FaMapMarkerAlt size={9} className="text-rose-400 shrink-0" />
+                      {d.city || 'N/A'}
+                    </p>
                   </div>
 
+                  {/* Credentials */}
                   <div>
-                    <span className="text-sm font-mono bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md border border-blue-100">
+                    <span className="text-xs font-mono bg-slate-50 text-slate-600 px-2.5 py-1 rounded-lg border border-slate-200">
                       {d.password || "—"}
                     </span>
                   </div>
 
+                  {/* Status Badge */}
                   <div>
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide" style={{ backgroundColor: badge.color + '15', color: badge.color }}>
+                    <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wide" style={{ backgroundColor: badge.color + '18', color: badge.color }}>
                       {badge.label}
                     </span>
                   </div>
 
+                  {/* Joined */}
                   <div>
-                    <p className="text-xs text-gray-600">{new Date(d.createdAt).toLocaleDateString('en-IN')}</p>
+                    <p className="text-xs font-medium text-gray-500">{new Date(d.createdAt).toLocaleDateString('en-IN')}</p>
                   </div>
 
-                <div className="flex items-center justify-center gap-2">
-                  <button onClick={() => setViewDriverId(d._id)} className="p-1.5 rounded-lg border border-blue-100 hover:bg-blue-50 text-blue-600 transition-all group" title="View Details">
-                    <Eye size={16} className="group-hover:scale-110 transition-transform" />
-                  </button>
-                  <button onClick={() => { setEditDriver(d); setShowForm(true); }} className="p-1.5 rounded-lg border border-orange-100 hover:bg-orange-50 text-orange-600 transition-all group" title="Edit">
-                    <Pencil size={16} className="group-hover:scale-110 transition-transform" />
-                  </button>
-                  <button onClick={() => setDeleteDriver(d)} className="p-1.5 rounded-lg border border-red-100 hover:bg-red-50 text-red-600 transition-all group" title="Delete">
-                    <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
-                  </button>
+                  {/* Actions */}
+                  <div className="flex items-center justify-center gap-1.5">
+                    <button onClick={() => setViewDriverId(d._id)} className="p-2 rounded-xl border border-blue-100 bg-blue-50 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-blue-600 transition-all duration-200" title="View">
+                      <Eye size={14} />
+                    </button>
+                    <button onClick={() => { setEditDriver(d); setShowForm(true); }} className="p-2 rounded-xl border border-amber-100 bg-amber-50 hover:bg-amber-500 hover:text-white hover:border-amber-500 text-amber-600 transition-all duration-200" title="Edit">
+                      <Pencil size={14} />
+                    </button>
+                    <button onClick={() => setDeleteDriver(d)} className="p-2 rounded-xl border border-red-100 bg-red-50 hover:bg-red-500 hover:text-white hover:border-red-500 text-red-500 transition-all duration-200" title="Delete">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
-              </div>
             );
           })}
           </div>

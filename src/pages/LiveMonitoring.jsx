@@ -97,44 +97,51 @@ export default function LiveMonitoring() {
 
   // --- Google Maps Initialization ---
   useEffect(() => {
-    if (!loading && GOOGLE_MAPS_API_KEY && !googleMapRef.current) {
-      // Already loaded check
-      if (window.google?.maps) {
-        const mapOptions = {
-          center: { lat: 26.8467, lng: 80.9462 },
-          zoom: 12,
-          styles: theme === "dark" ? darkMapStyle : [],
-          disableDefaultUI: true,
-          zoomControl: false,
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: false,
-        };
-        googleMapRef.current = new window.google.maps.Map(mapRef.current, mapOptions);
-        return;
-      }
+    if (!GOOGLE_MAPS_API_KEY || !mapRef.current) return;
 
-      // loading=async fix — best practice
-      const script = document.createElement("script");
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&loading=async`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        const mapOptions = {
-          center: { lat: 26.8467, lng: 80.9462 },
-          zoom: 12,
-          styles: theme === "dark" ? darkMapStyle : [],
-          disableDefaultUI: true,
-          zoomControl: false,
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: false,
-        };
-        googleMapRef.current = new window.google.maps.Map(mapRef.current, mapOptions);
+    const initMap = () => {
+      if (!mapRef.current || googleMapRef.current) return;
+      
+      const mapOptions = {
+        center: { lat: 26.8467, lng: 80.9462 },
+        zoom: 12,
+        styles: theme === "dark" ? darkMapStyle : [],
+        disableDefaultUI: true,
+        zoomControl: false,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
       };
-      document.head.appendChild(script);
+      googleMapRef.current = new window.google.maps.Map(mapRef.current, mapOptions);
+    };
+
+    // Check if Google Maps already loaded
+    if (window.google?.maps) {
+      initMap();
+      return;
     }
-  }, [loading, theme]);
+
+    // Check if script already exists
+    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+    if (existingScript) {
+      const checkInterval = setInterval(() => {
+        if (window.google?.maps) {
+          initMap();
+          clearInterval(checkInterval);
+        }
+      }, 100);
+      return () => clearInterval(checkInterval);
+    }
+
+    // Load script
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}`;
+    script.async = true;
+    script.defer = true;
+    script.onload = initMap;
+    script.onerror = () => console.error("Google Maps failed to load");
+    document.head.appendChild(script);
+  }, [theme]);
 
   // --- Marker Animation Helper ---
   const animateMarker = (marker, newPos) => {

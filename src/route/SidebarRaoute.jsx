@@ -20,13 +20,13 @@ const routes = [
   { path: "/drivers", component: ManageDrivers, name: "Manage Drivers", icon: FaUser },
   { path: "/assignments", component: ManageAssignments, name: "Assignments", icon: FaLink },
   { path: "/live-monitoring", component: LiveMonitoring, name: "Live Monitoring", icon: FaMapMarkedAlt },
+  { path: "/bulk-marketplace", component: BulkMarketplace, name: "Bulk Marketplace", icon: FaWallet },
+  { path: "/my-bulk-assignments", component: MyBulkRides, name: "My Bulk Rides", icon: FaCheckCircle },
   { path: "/wallet", component: ManageWallet, name: "Wallet", icon: FaWallet },
-  { path: "/withdraw", component: WithdrawMoney, name: "Withdraw", icon: FaHandHoldingUsd, hide: false },
+  { path: "/withdraw", component: WithdrawMoney, name: "Withdraw", icon: FaHandHoldingUsd, hide: true },
   { path: "/notifications", component: ManageNotifications, name: "Notifications", icon: FaBell },
   { path: "/profile", component: ManageProfile, name: "Profile", icon: FaUserCircle },
   { path: "/reports", component: ManageReports, name: "Reports", icon: FaChartBar },
-  { path: "/bulk-marketplace", component: BulkMarketplace, name: "Bulk Marketplace", icon: FaWallet },
-  { path: "/my-bulk-assignments", component: MyBulkRides, name: "My Bulk Rides", icon: FaCheckCircle },
 
 ];
 

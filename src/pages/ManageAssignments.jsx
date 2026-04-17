@@ -11,63 +11,35 @@ import { carsApi } from "../api/carsApi";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
 import {
-  PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
-  LineChart, Line
-} from 'recharts';
-import {
   FaCar, FaUser, FaSync, FaLink, FaUnlink, FaEye,
-  FaSearch, FaTimes, FaCheckCircle, FaClock, FaExclamationTriangle,
-  FaChartPie, FaChartBar, FaChartLine, FaHistory
+  FaSearch, FaTimes, FaCheckCircle, FaHistory
 } from "react-icons/fa";
 import {
   Eye, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
-  LinkIcon, Unlink, User, Car, Calendar, Phone, UserCheck,
-  TrendingUp, DollarSign, Activity, Users
+  LinkIcon, Unlink, User, Car, Calendar, Phone, UserCheck
 } from "lucide-react";
 
-// Chart Colors
+// Colors
 const CHART_COLORS = {
   primary: '#3B82F6',
   success: '#10B981',
   warning: '#F59E0B',
   danger: '#EF4444',
   purple: '#8B5CF6',
-  cyan: '#06B6D4',
-  orange: '#F97316',
-  teal: '#14B8A6',
   gray: '#94A3B8',
-  lightGray: '#E5E7EB'
 };
-
-// ─────────────────────────────────────────────
-// Chart Card Component
-// ─────────────────────────────────────────────
-const ChartCard = ({ title, icon: Icon, children }) => (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-lg transition-all">
-    <div className="flex items-center gap-2 mb-4">
-      <div className="p-2 bg-blue-50 rounded-lg">
-        <Icon className="text-blue-600" size={16} />
-      </div>
-      <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-    </div>
-    {children}
-  </div>
-);
 
 // ─────────────────────────────────────────────
 // StatBox
 // ─────────────────────────────────────────────
 const StatBox = ({ label, value, icon: Icon, color }) => (
-  <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 hover:shadow-lg transition-all">
-    <div className="flex items-center gap-2 sm:gap-3">
-      <div className="p-2 sm:p-3 rounded-lg shrink-0" style={{ backgroundColor: color + '15' }}>
-        <Icon className="text-base sm:text-lg" style={{ color }} />
+  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+    <div className="p-5 sm:p-6">
+      <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-sm" style={{ backgroundColor: color + '20' }}>
+        <Icon size={22} style={{ color }} />
       </div>
-      <div className="min-w-0">
-        <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-tight truncate leading-tight mb-0.5">{label}</p>
-        <p className="text-base sm:text-xl font-black text-gray-900 leading-none">{value}</p>
-      </div>
+      <p className="text-3xl sm:text-4xl font-black text-gray-900 leading-none mb-2">{value}</p>
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</p>
     </div>
   </div>
 );
@@ -429,30 +401,6 @@ export default function ManageAssignments() {
     };
   }, [drivers, assignmentsByDriverId, history]);
 
-  // ── Chart Data ────────────────────────────────────
-  const statusData = [
-    { name: 'Assigned', value: stats.assigned, color: CHART_COLORS.success },
-    { name: 'Unassigned', value: stats.unassigned, color: CHART_COLORS.gray }
-  ].filter(item => item.value > 0);
-
-  const assignmentTrendData = assignments.slice(0, 7).map((a, i) => ({
-    day: `Day ${i + 1}`,
-    assignments: 1
-  }));
-
-  const driverUtilizationData = [
-    { name: 'With Car', value: stats.assigned, color: CHART_COLORS.success },
-    { name: 'Without Car', value: stats.unassigned, color: CHART_COLORS.warning }
-  ].filter(item => item.value > 0);
-
-  const monthlyHistoryData = history.reduce((acc, h) => {
-    const month = new Date(h.unassignedAt || h.createdAt).toLocaleString('default', { month: 'short' });
-    acc[month] = (acc[month] || 0) + 1;
-    return acc;
-  }, {});
-
-  const historyBarData = Object.entries(monthlyHistoryData).map(([month, count]) => ({ month, count }));
-
   return (
     <div className="space-y-6 p-4 sm:p-6 bg-gray-50 min-h-screen" style={{ fontFamily: currentFont.family }}>
 
@@ -469,27 +417,10 @@ export default function ManageAssignments() {
               </p>
            </div>
            
-           {/* Refresh Button - TOP RIGHT ON MOBILE */}
-           <button
-              onClick={() => { fetchAssignments(); fetchDriversAndCars(); }}
-              className="sm:hidden p-3 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all active:scale-90 text-blue-600"
-              title="Refresh"
-           >
-              <FaSync className={loading ? "animate-spin" : ""} size={16} />
-           </button>
+
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">
-           {/* Refresh Button - DESKTOP ONLY */}
-           <button
-            onClick={() => { fetchAssignments(); fetchDriversAndCars(); }}
-            className="hidden sm:flex p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all text-gray-600"
-            title="Refresh"
-           >
-            <FaSync className={loading ? "animate-spin" : ""} />
-           </button>
-
-           {/* Assign Car Button */}
            <button
             onClick={() => { setPreSelectedDriver(""); setShowAssignModal(true); }}
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl sm:rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95 font-bold text-sm"
@@ -506,99 +437,6 @@ export default function ManageAssignments() {
         <StatBox label="Assigned" value={stats.assigned} icon={FaCheckCircle} color={CHART_COLORS.success} />
         <StatBox label="Unassigned" value={stats.unassigned} icon={FaUnlink} color={CHART_COLORS.gray} />
         <StatBox label="History" value={stats.history} icon={FaHistory} color={CHART_COLORS.purple} />
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Chart 1: Assignment Status */}
-        <ChartCard title="Assignment Status" icon={FaChartPie}>
-          {statusData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={45}
-                  outerRadius={65}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend iconType="circle" verticalAlign="bottom" align="center" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[200px] flex items-center justify-center text-gray-400 text-sm">
-              No data available
-            </div>
-          )}
-        </ChartCard>
-
-        {/* Chart 2: Driver Utilization */}
-        <ChartCard title="Driver Utilization" icon={Activity}>
-          {driverUtilizationData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={driverUtilizationData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={45}
-                  outerRadius={65}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {driverUtilizationData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend iconType="circle" verticalAlign="bottom" align="center" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[200px] flex items-center justify-center text-gray-400 text-sm">
-              No data available
-            </div>
-          )}
-        </ChartCard>
-
-        {/* Chart 3: Assignment Trend */}
-        <ChartCard title="Assignment Trend" icon={FaChartLine}>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={assignmentTrendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-              <XAxis dataKey="day" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="assignments" stroke={CHART_COLORS.primary} strokeWidth={2} />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        {/* Chart 4: History Distribution */}
-        <ChartCard title="History Distribution" icon={FaChartBar}>
-          {historyBarData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={historyBarData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill={CHART_COLORS.purple} radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[200px] flex items-center justify-center text-gray-400 text-sm">
-              No history data
-            </div>
-          )}
-        </ChartCard>
       </div>
 
       {/* Search */}
@@ -649,7 +487,7 @@ export default function ManageAssignments() {
           <div className="min-w-[1000px]">
 
         {/* Table Header */}
-        <div className="grid gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase" style={{ gridTemplateColumns: filter === "history" ? "2.5fr 2.5fr 1.5fr 1.5fr 1fr" : "2.5fr 2.5fr 1.5fr 1fr 1.5fr" }}>
+        <div className="grid gap-4 px-6 py-4 bg-gray-50 border-b border-gray-200 text-xs font-extrabold text-gray-700 uppercase tracking-widest" style={{ gridTemplateColumns: filter === "history" ? "2.5fr 2.5fr 1.5fr 1.5fr 1fr" : "2.5fr 2.5fr 1.5fr 1fr 1.5fr" }}>
           <span>{filter === "history" ? "Driver Name" : "Driver Info"}</span>
           <span>{filter === "history" ? "Past Car" : "Assigned Car"}</span>
           <span>Assigned At</span>
@@ -678,42 +516,35 @@ export default function ManageAssignments() {
             return (
               <div
                 key={item._id}
-                className="grid gap-4 px-6 py-4 border-b border-gray-100 hover:bg-gray-50 transition-all items-center"
-                style={{ gridTemplateColumns: "2.5fr 2.5fr 1.5fr 1.5fr 1fr", backgroundColor: i % 2 === 0 ? "#FFFFFF" : "#F9FAFB" }}
+                className="grid gap-4 px-6 py-5 border-b border-gray-100 hover:bg-blue-50/30 transition-all duration-200 items-center"
+                style={{ gridTemplateColumns: "2.5fr 2.5fr 1.5fr 1.5fr 1fr", backgroundColor: i % 2 === 0 ? "#FFFFFF" : "#FAFBFC" }}
               >
-                {/* Driver */}
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 shrink-0">
-                    <FaUser className="text-gray-400 text-xs" />
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 shrink-0">
+                    <FaUser className="text-gray-400" size={14} />
                   </div>
                   <div>
-                    <p className="font-medium text-sm text-gray-900">{item.driverName}</p>
-                    <p className="text-[10px] text-gray-500">{item.driverPhone}</p>
+                    <p className="font-bold text-sm text-gray-900">{item.driverName}</p>
+                    <p className="text-xs text-gray-500">{item.driverPhone}</p>
                   </div>
                 </div>
-
-                {/* Car */}
-                <div className="flex items-center gap-3 text-gray-600">
-                  <FaCar className="text-xs" />
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center border border-orange-100 shrink-0">
+                    <FaCar className="text-orange-400" size={14} />
+                  </div>
                   <div>
-                    <p className="font-medium text-sm">{item.carNumber}</p>
-                    <p className="text-[10px]">{item.carModel}</p>
+                    <p className="font-bold text-sm text-gray-900">{item.carNumber}</p>
+                    <p className="text-xs text-gray-500">{item.carModel}</p>
                   </div>
                 </div>
-
-                {/* Assigned At */}
-                <span className="text-xs text-gray-500">
+                <span className="text-xs font-medium text-gray-600">
                   {item.assignedAt ? new Date(item.assignedAt).toLocaleDateString("en-IN") : "—"}
                 </span>
-
-                {/* Unassigned At */}
-                <span className="text-xs text-red-500 font-medium">
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-50 text-red-500 inline-block w-fit">
                   {item.unassignedAt ? new Date(item.unassignedAt).toLocaleDateString("en-IN") : "—"}
                 </span>
-
-                {/* ID Snapshot */}
-                <span className="text-[10px] font-mono text-gray-400 text-center truncate px-2" title={item._id}>
-                  {item._id.slice(-6)}
+                <span className="text-[10px] font-mono text-gray-400 text-center truncate px-2 bg-gray-50 py-1 rounded-lg border border-gray-100" title={item._id}>
+                  #{item._id.slice(-6)}
                 </span>
               </div>
             );
@@ -725,79 +556,64 @@ export default function ManageAssignments() {
           return (
             <div
               key={d._id}
-              className="grid gap-4 px-6 py-4 border-b border-gray-100 hover:bg-gray-50 transition-all items-center"
-              style={{ gridTemplateColumns: "2.5fr 2.5fr 1.5fr 1fr 1.5fr", backgroundColor: i % 2 === 0 ? "#FFFFFF" : "#F9FAFB" }}
+              className="grid gap-4 px-6 py-5 border-b border-gray-100 hover:bg-blue-50/30 transition-all duration-200 items-center"
+              style={{ gridTemplateColumns: "2.5fr 2.5fr 1.5fr 1fr 1.5fr", backgroundColor: i % 2 === 0 ? "#FFFFFF" : "#FAFBFC" }}
             >
-              {/* Driver */}
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200 shrink-0 overflow-hidden">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200 shrink-0 overflow-hidden">
                   {d.image
                     ? <img src={imgUrl(d.image)} alt={d.name} className="w-full h-full object-cover" onError={e => { e.currentTarget.style.display='none'; e.currentTarget.parentElement.innerHTML='<svg class="text-blue-500" style="width:16px;height:16px" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>'; }}
                     />
-                    : <FaUser className="text-blue-500 text-sm" />
+                    : <FaUser className="text-blue-500" size={14} />
                   }
                 </div>
                 <div>
-                  <p className="font-semibold text-sm text-gray-900">{d.name}</p>
+                  <p className="font-bold text-sm text-gray-900">{d.name}</p>
                   <p className="text-xs text-gray-500">{d.phone}</p>
                 </div>
               </div>
-
-              {/* Car */}
               <div className="flex items-center gap-3">
                 {hasCar ? (
                   <>
-                    <div className="w-9 h-9 rounded-lg bg-green-50 flex items-center justify-center border border-green-100 shrink-0">
-                      <FaCar className="text-green-500 text-sm" />
+                    <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center border border-green-100 shrink-0">
+                      <FaCar className="text-green-500" size={14} />
                     </div>
                     <div>
-                      <p className="font-semibold text-sm text-gray-900">{assignment.carNumber || assignment.carId?.carNumber}</p>
+                      <p className="font-bold text-sm text-gray-900">{assignment.carNumber || assignment.carId?.carNumber}</p>
                       <p className="text-xs text-gray-500">{assignment.carModel || assignment.carId?.carModel}</p>
                     </div>
                   </>
                 ) : (
-                  <span className="text-xs text-gray-400 italic">No car assigned</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200 shrink-0">
+                      <FaCar className="text-gray-300" size={14} />
+                    </div>
+                    <span className="text-xs text-gray-400 italic">No car assigned</span>
+                  </div>
                 )}
               </div>
-
-              {/* Assigned At */}
               <div>
-                <p className="text-xs text-gray-600">
+                <p className="text-xs font-medium text-gray-600">
                   {assignment?.assignedAt ? new Date(assignment.assignedAt).toLocaleDateString("en-IN") : "—"}
                 </p>
               </div>
-
-              {/* Status */}
               <div>
-                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide inline-block ${hasCar ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                  {hasCar ? "Assigned" : "Free"}
+                <span className={`px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wide inline-block ${hasCar ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                  {hasCar ? "✅ Assigned" : "Free"}
                 </span>
               </div>
-
-              {/* Actions */}
               <div className="flex items-center justify-center gap-2">
                 {hasCar ? (
                   <>
-                    <button
-                      onClick={() => setViewAssignment(assignment)}
-                      className="p-1.5 rounded-lg border border-blue-100 hover:bg-blue-50 text-blue-600 transition-all group"
-                      title="Details Dekho"
-                    >
+                    <button onClick={() => setViewAssignment(assignment)} className="p-2 rounded-lg border border-blue-100 hover:bg-blue-50 text-blue-600 transition-all" title="Details Dekho">
                       <Eye size={15} />
                     </button>
-                    <button
-                      onClick={() => handleUnassign(assignment._id, d.name)}
-                      className="p-1.5 rounded-lg border border-red-100 hover:bg-red-50 text-red-500 transition-all group"
-                      title="Unassign Karo"
-                    >
+                    <button onClick={() => handleUnassign(assignment._id, d.name)} className="p-2 rounded-lg border border-red-100 hover:bg-red-50 text-red-500 transition-all" title="Unassign Karo">
                       <Unlink size={15} />
                     </button>
                   </>
                 ) : (
-                  <button
-                    onClick={() => { setPreSelectedDriver(d._id); setShowAssignModal(true); }}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-600 hover:text-white transition-all text-xs font-semibold border border-blue-100"
-                  >
+                  <button onClick={() => { setPreSelectedDriver(d._id); setShowAssignModal(true); }} className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-bold shadow-sm shadow-blue-200">
                     <FaLink size={10} /> Assign Car
                   </button>
                 )}
@@ -807,8 +623,6 @@ export default function ManageAssignments() {
         })}
           </div>
         </div>
-
-        {/* Pagination */}
         {!loading && filtered.length > 0 && (
           <div className="px-6 py-4 border-t bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">

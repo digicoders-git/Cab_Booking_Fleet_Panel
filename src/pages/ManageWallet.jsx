@@ -1,26 +1,22 @@
 // src/pages/ManageWallet.jsx
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { useFont } from "../context/FontContext";
 import { walletApi } from "../api/walletApi";
 import { toast } from "sonner";
+import Swal from "sweetalert2";
 import {
   FaWallet, FaHistory, FaArrowUp, FaArrowDown,
   FaSync, FaSearch, FaTimes, FaCoins, FaHandHoldingUsd,
   FaCheckCircle, FaClock, FaExclamationCircle,
-  FaFilter, FaDownload, FaPrint, FaEye
+  FaFilter, FaDownload, FaPrint, FaEye, FaPaperPlane,
+  FaExclamationTriangle
 } from "react-icons/fa";
 import {
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight,
   TrendingUp, TrendingDown, DollarSign, Calendar, Info, Banknote,
   CreditCard, Clock, CheckCircle, XCircle, AlertCircle
 } from "lucide-react";
-import {
-  PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
-  LineChart, Line
-} from 'recharts';
 
 // Chart Colors
 const CHART_COLORS = {
@@ -37,39 +33,218 @@ const CHART_COLORS = {
 };
 
 // ─────────────────────────────────────────────
-// Chart Card Component
+// StatBox Component
 // ─────────────────────────────────────────────
-const ChartCard = ({ title, icon: Icon, children }) => (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-lg transition-all">
-    <div className="flex items-center gap-2 mb-4">
-      <div className="p-2 bg-blue-50 rounded-lg">
-        <Icon className="text-blue-600" size={16} />
+const StatBox = ({ label, value, icon: Icon, color }) => (
+  <div
+    className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+    style={{ borderColor: '#e5e7eb', boxShadow: `0 4px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)` }}
+  >
+    <div className="p-5 sm:p-6">
+      <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-sm" style={{ backgroundColor: color + '20' }}>
+        <Icon size={22} style={{ color }} />
       </div>
-      <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+      <p className="text-3xl sm:text-4xl font-black text-gray-900 leading-none mb-2">{value}</p>
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{label}</p>
     </div>
-    {children}
   </div>
 );
 
 // ─────────────────────────────────────────────
-// StatBox Component
+// Withdraw Modal Component
 // ─────────────────────────────────────────────
-const StatBox = ({ label, value, icon: Icon, color }) => (
-  <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100/60 hover:shadow-lg transition-all">
-    <div className="flex items-center gap-2 sm:gap-3">
-      <div className="p-2 sm:p-3 rounded-lg shrink-0" style={{ backgroundColor: color + '15' }}>
-        <Icon className="text-base sm:text-lg" style={{ color }} />
-      </div>
-      <div className="min-w-0">
-        <p className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-tight truncate leading-tight mb-0.5">{label}</p>
-        <div className="flex items-baseline gap-0.5">
-          <span className="text-[10px] sm:text-xs font-bold text-gray-400">₹</span>
-          <p className="text-base sm:text-xl font-black text-gray-900 leading-none">{value}</p>
+const WithdrawModal = ({ isOpen, onClose, balance, themeColors }) => {
+  const [amount, setAmount] = useState("");
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const withdrawAmount = Number(amount);
+
+    if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
+      return toast.error("Valid amount daalein");
+    }
+
+    if (withdrawAmount > balance) {
+      return Swal.fire({
+        icon: 'error',
+        title: 'Insufficient Balance',
+        text: `Aapke wallet mein sirf ₹${balance.toLocaleString()} hain.`,
+        confirmButtonColor: '#3B82F6'
+      });
+    }
+
+    const result = await Swal.fire({
+      title: 'Withdrawal Request Karein?',
+      text: `₹${withdrawAmount.toLocaleString()} aapke wallet se kat jayenge aur approval ke liye bhej diye jayenge.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3B82F6',
+      cancelButtonColor: '#94A3B8',
+      confirmButtonText: 'Haan, Request Bhejo',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!result.isConfirmed) return;
+
+    setLoading(true);
+    try {
+      const res = await walletApi.withdraw({ amount: withdrawAmount, description });
+      if (res.success) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Request Submitted!',
+          text: 'Aapki withdrawal request Admin ko bhej di gayi hai.',
+          confirmButtonColor: '#10B981'
+        });
+        setAmount("");
+        setDescription("");
+        onClose();
+        window.location.reload();
+      } else {
+        throw new Error(res.message || "Withdrawal failed");
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err?.response?.data?.message || err?.message || "Kuch gadbad ho gayi!",
+        confirmButtonColor: '#EF4444'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-gray-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-blue-600 rounded-xl text-white">
+              <FaPaperPlane size={16} />
+            </div>
+            <h2 className="text-lg font-bold text-gray-900">Withdrawal Request</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            <FaTimes size={18} className="text-gray-600" />
+          </button>
         </div>
+
+        {/* Body */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Balance Display */}
+          <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-5 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-100 text-xs mb-1">Available Balance</p>
+                <p className="text-3xl font-bold">₹{balance.toLocaleString()}</p>
+              </div>
+              <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                <FaWallet size={24} className="text-white" />
+              </div>
+            </div>
+          </div>
+
+          {/* Amount Input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Withdrawal Amount</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-gray-400">₹</span>
+              <input
+                type="number"
+                required
+                placeholder="0"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="w-full pl-10 pr-24 py-4 border border-gray-300 rounded-xl text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              />
+              <button
+                type="button"
+                onClick={() => setAmount(balance.toString())}
+                className="absolute right-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium hover:bg-blue-100 transition-colors"
+              >
+                Max
+              </button>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">Minimum withdrawal: ₹100</p>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+            <textarea
+              rows="3"
+              placeholder="Add a note for your withdrawal request..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-none"
+            />
+          </div>
+
+          {/* Info Boxes */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+              <p className="text-xs text-blue-600 font-medium mb-1">Processing Time</p>
+              <p className="text-sm font-bold text-gray-900">24-48 hours</p>
+            </div>
+            <div className="p-4 bg-purple-50 rounded-xl border border-purple-100">
+              <p className="text-xs text-purple-600 font-medium mb-1">Withdrawal Fee</p>
+              <p className="text-sm font-bold text-gray-900">Free</p>
+            </div>
+          </div>
+
+          {/* Warning Note */}
+          <div className="flex items-start gap-3 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+            <FaExclamationTriangle className="text-yellow-600 mt-0.5 shrink-0" size={16} />
+            <p className="text-xs text-yellow-700 leading-relaxed">
+              Make sure your bank details are correct in your profile. Incorrect details may cause delays.
+            </p>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-3 px-4 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 py-3 px-4 bg-gray-900 text-white rounded-xl font-medium hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+              ) : (
+                <>
+                  <FaPaperPlane size={14} />
+                  Submit Request
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ─────────────────────────────────────────────
 // Main ManageWallet Component
@@ -77,20 +252,17 @@ const StatBox = ({ label, value, icon: Icon, color }) => (
 export default function ManageWallet() {
   const { themeColors } = useTheme();
   const { currentFont } = useFont();
-  const navigate = useNavigate();
 
   const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
-  const [dateRange, setDateRange] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
 
   // ── Fetch Data ──────────────────────────────────
   const fetchWallet = useCallback(async () => {
-    setRefreshing(true);
     try {
       const data = await walletApi.getFleetWallet();
       setWallet(data);
@@ -98,7 +270,6 @@ export default function ManageWallet() {
       toast.error(err?.response?.data?.message || err?.message || "Wallet load nahi hua");
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }, []);
 
@@ -131,30 +302,6 @@ export default function ManageWallet() {
     };
   }, [wallet, transactions]);
 
-  // Chart 1: Transaction Types - Pie Chart
-  const typeData = [
-    { name: 'Credits', value: stats.totalCredits, color: CHART_COLORS.success },
-    { name: 'Debits', value: stats.totalDebits, color: CHART_COLORS.danger }
-  ].filter(item => item.value > 0);
-
-  // Chart 2: Status Distribution - Pie Chart
-  const statusData = [
-    { name: 'Completed', value: transactions.filter(t => t.status === 'Completed').length, color: CHART_COLORS.success },
-    { name: 'Pending', value: transactions.filter(t => t.status === 'Pending').length, color: CHART_COLORS.warning }
-  ].filter(item => item.value > 0);
-
-  // Chart 3: Monthly Trend - Line Chart
-  const monthlyData = transactions.reduce((acc, t) => {
-    const month = new Date(t.createdAt).toLocaleString('default', { month: 'short' });
-    const existing = acc.find(item => item.month === month);
-    if (existing) {
-      existing.amount += t.amount || 0;
-    } else {
-      acc.push({ month, amount: t.amount || 0 });
-    }
-    return acc;
-  }, []).slice(0, 6);
-
   // Filter transactions
   const filtered = useMemo(() => {
     let filtered = transactions;
@@ -162,14 +309,6 @@ export default function ManageWallet() {
     // Type filter
     if (filter === "credit") filtered = filtered.filter(t => t.type === "Credit");
     if (filter === "debit") filtered = filtered.filter(t => t.type === "Debit");
-
-    // Date range filter
-    if (dateRange !== "all") {
-      const now = new Date();
-      const days = dateRange === "week" ? 7 : dateRange === "month" ? 30 : 90;
-      const cutoff = new Date(now.setDate(now.getDate() - days));
-      filtered = filtered.filter(t => new Date(t.createdAt) >= cutoff);
-    }
 
     // Search filter
     const q = search.toLowerCase();
@@ -180,22 +319,13 @@ export default function ManageWallet() {
         (t._id || "").toLowerCase().includes(q)
       )
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, [transactions, filter, dateRange, search]);
+  }, [transactions, filter, search]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const displayed = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filtered.slice(start, start + itemsPerPage);
   }, [filtered, currentPage, itemsPerPage]);
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'Completed': return <CheckCircle className="text-green-500" size={14} />;
-      case 'Pending': return <Clock className="text-yellow-500" size={14} />;
-      case 'Failed': return <XCircle className="text-red-500" size={14} />;
-      default: return <AlertCircle className="text-gray-400" size={14} />;
-    }
-  };
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -225,41 +355,12 @@ export default function ManageWallet() {
                 <p className="text-[10px] sm:text-xs text-gray-500 font-medium mt-0.5 uppercase tracking-wider">Financial Overview</p>
               </div>
            </div>
-           
-           {/* Refresh Button - TOP RIGHT ON MOBILE */}
-           <button
-              onClick={fetchWallet}
-              className="sm:hidden p-3 rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all active:scale-90 text-blue-600"
-              title="Refresh"
-           >
-              <FaSync className={refreshing ? "animate-spin" : ""} size={16} />
-           </button>
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">
-           {/* Date Range - Hidden on tiny screens or better styled */}
-           <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className="hidden sm:block px-3 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer"
-           >
-            <option value="all">All Time</option>
-            <option value="week">7 Days</option>
-            <option value="month">30 Days</option>
-           </select>
-
-           {/* Refresh Button - DESKTOP ONLY */}
-           <button
-            onClick={fetchWallet}
-            className="hidden sm:flex p-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-all text-gray-600"
-            title="Refresh"
-           >
-            <FaSync className={refreshing ? "animate-spin" : ""} />
-           </button>
-
            {/* Withdraw Button */}
            <button
-            onClick={() => navigate("/withdraw")}
+            onClick={() => setShowWithdrawModal(true)}
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl sm:rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/20 active:scale-95 font-bold text-sm"
            >
             <Banknote size={16} />
@@ -269,7 +370,6 @@ export default function ManageWallet() {
       </div>
 
       {/* Stats Cards */}
-      {/* Stats Cards - Responsive 2-Column Grid on Mobile */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatBox
           label="Wallet Balance"
@@ -295,86 +395,6 @@ export default function ManageWallet() {
           icon={TrendingDown}
           color={CHART_COLORS.danger}
         />
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chart 1: Transaction Types */}
-        <ChartCard title="Transaction Types" icon={FaWallet}>
-          {typeData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={typeData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={45}
-                  outerRadius={65}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {typeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend iconType="circle" verticalAlign="bottom" align="center" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[200px] flex items-center justify-center text-gray-400 text-sm">
-              No transaction data
-            </div>
-          )}
-        </ChartCard>
-
-        {/* Chart 2: Status Distribution */}
-        <ChartCard title="Transaction Status" icon={FaHistory}>
-          {statusData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={45}
-                  outerRadius={65}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend iconType="circle" verticalAlign="bottom" align="center" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[200px] flex items-center justify-center text-gray-400 text-sm">
-              No status data
-            </div>
-          )}
-        </ChartCard>
-
-        {/* Chart 3: Monthly Trend */}
-        <ChartCard title="Monthly Trend" icon={DollarSign}>
-          {monthlyData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="amount" stroke={CHART_COLORS.primary} strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[200px] flex items-center justify-center text-gray-400 text-sm">
-              No monthly data
-            </div>
-          )}
-        </ChartCard>
       </div>
 
       {/* Quick Stats Row */}
@@ -575,6 +595,14 @@ export default function ManageWallet() {
           </div>
         )}
       </div>
+
+      {/* Withdraw Modal */}
+      <WithdrawModal
+        isOpen={showWithdrawModal}
+        onClose={() => setShowWithdrawModal(false)}
+        balance={stats.balance}
+        themeColors={themeColors}
+      />
     </div>
   );
 }

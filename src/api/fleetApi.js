@@ -40,4 +40,10 @@ export const fleetApi = {
     const response = await apiClient.get("/api/fleet/performance");
     return response.data;
   },
+
+  // 7. Update FCM Token
+  updateFcmToken: async (fcmToken) => {
+    const response = await apiClient.put("/api/fleet/update-fcm-token", { fcmToken });
+    return response.data;
+  },
 };

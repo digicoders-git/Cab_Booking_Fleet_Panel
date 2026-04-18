@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useFont } from "../context/FontContext";
 import { fleetApi } from "../api/fleetApi";
+import { requestForToken } from "../firebase";
 import { toast } from "sonner";
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
@@ -285,6 +286,20 @@ export default function FleetDashboard() {
 
   useEffect(() => {
     fetchDashboard();
+    
+    // 🔥 FCM Integration for Fleet
+    const setupFCM = async () => {
+      try {
+        const token = await requestForToken();
+        if (token) {
+          console.log('Successfully got Fleet FCM token:', token);
+          await fleetApi.updateFcmToken(token);
+        }
+      } catch (err) {
+        console.error('FCM Setup Error:', err);
+      }
+    };
+    setupFCM();
   }, []);
 
   const profile = dashboardData?.profile || {};

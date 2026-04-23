@@ -159,17 +159,28 @@ export default function BulkMarketplace() {
                                         </p>
                                     </div>
                                 </div>
-
                                 {/* Price */}
                                 <div className="text-right">
                                     <p className="text-xl font-bold" style={{ color: themeColors.primary }}>
                                         ₹{deal.offeredPrice.toLocaleString("en-IN")}
                                     </p>
                                     <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: themeColors.textSecondary }}>
-                                        {deal.totalDistance} KM Package
+                                        {deal.tripType === 'RoundTrip' ? 'Round Trip Package' : 'One Way Package'}
                                     </p>
                                 </div>
                             </div>
+
+                            {/* Trip Type Badge Bar */}
+                            {deal.tripType === 'RoundTrip' && (
+                                <div className="px-5 py-2 bg-green-500/5 border-b flex items-center gap-2" style={{ borderColor: themeColors.border }}>
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-green-600 bg-green-100 px-2 py-0.5 rounded">
+                                        Round Trip Deal
+                                    </span>
+                                    <span className="text-[9px] text-green-700 font-bold italic">
+                                        *Price includes return journey and stay
+                                    </span>
+                                </div>
+                            )}
 
                             {/* Card Body */}
                             <div className="p-5 space-y-4">
@@ -198,13 +209,20 @@ export default function BulkMarketplace() {
                                     </div>
                                 </div>
 
-                                {/* Stats Row */}
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     {[
-                                        { icon: FaCalendarAlt, label: "Start Date", value: new Date(deal.pickupDateTime).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) },
+                                        { icon: FaCalendarAlt, label: "Start Date", value: new Date(deal.pickupDateTime).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) },
+                                        { 
+                                            icon: FaCalendarAlt, 
+                                            label: "Return Date", 
+                                            value: deal.tripType === 'RoundTrip' && deal.returnDateTime 
+                                                ? new Date(deal.returnDateTime).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) 
+                                                : "N/A",
+                                            isHidden: deal.tripType !== 'RoundTrip'
+                                        },
                                         { icon: FaClock, label: "Duration", value: `${deal.numberOfDays} Days` },
                                         { icon: FaRoad, label: "Distance", value: `${deal.totalDistance} KM` },
-                                    ].map(({ icon: Icon, label, value }) => (
+                                    ].filter(item => !item.isHidden).map(({ icon: Icon, label, value }) => (
                                         <div
                                             key={label}
                                             className="p-3 rounded-xl"

@@ -91,12 +91,19 @@ export default function MyBulkRides() {
                                     className="px-6 py-3 flex items-center justify-between border-b"
                                     style={{ backgroundColor: themeColors.background, borderColor: themeColors.border }}
                                 >
-                                    <span
-                                        className="px-3 py-1 rounded-full text-xs font-bold"
-                                        style={{ backgroundColor: status.bg, color: status.color }}
-                                    >
-                                        {status.label}
-                                    </span>
+                                    <div className="flex items-center gap-3">
+                                        <span
+                                            className="px-3 py-1 rounded-full text-xs font-bold"
+                                            style={{ backgroundColor: status.bg, color: status.color }}
+                                        >
+                                            {status.label}
+                                        </span>
+                                        <span
+                                            className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${ride.tripType === 'RoundTrip' ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-gray-100 text-gray-500 border-gray-200'}`}
+                                        >
+                                            {ride.tripType === 'RoundTrip' ? 'Round Trip' : 'One Way'}
+                                        </span>
+                                    </div>
                                     <span className="text-xs font-medium" style={{ color: themeColors.textSecondary }}>
                                         Accepted on {new Date(ride.updatedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                                     </span>
@@ -130,13 +137,21 @@ export default function MyBulkRides() {
                                         </div>
 
                                         {/* Stats Grid */}
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
                                             {[
                                                 { icon: FaCalendarAlt, label: "Start Date", value: new Date(ride.pickupDateTime).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) },
+                                                { 
+                                                    icon: FaCalendarAlt, 
+                                                    label: "Return Date", 
+                                                    value: ride.tripType === 'RoundTrip' && ride.returnDateTime 
+                                                        ? new Date(ride.returnDateTime).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) 
+                                                        : "N/A",
+                                                    isHidden: ride.tripType !== 'RoundTrip' 
+                                                },
                                                 { icon: FaClock, label: "Duration", value: `${ride.numberOfDays} Days` },
                                                 { icon: FaRoad, label: "Total KM", value: `${ride.totalDistance} KM` },
                                                 { icon: FaCheckCircle, label: "Earnings", value: `₹${ride.offeredPrice?.toLocaleString("en-IN")}`, highlight: true },
-                                            ].map(({ icon: Icon, label, value, highlight }) => (
+                                            ].filter(item => !item.isHidden).map(({ icon: Icon, label, value, highlight }) => (
                                                 <div
                                                     key={label}
                                                     className="p-4 rounded-xl flex flex-col gap-1"

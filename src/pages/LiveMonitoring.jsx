@@ -20,6 +20,52 @@ import { toast } from "sonner";
 // --- Google Maps Configuration ---
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
+// --- Helper: Bearing & Distance ---
+const calculateBearing = (startLat, startLng, endLat, endLng) => {
+  const startLatRad = (Math.PI * startLat) / 180;
+  const startLngRad = (Math.PI * startLng) / 180;
+  const endLatRad = (Math.PI * endLat) / 180;
+  const endLngRad = (Math.PI * endLng) / 180;
+  const y = Math.sin(endLngRad - startLngRad) * Math.cos(endLatRad);
+  const x = Math.cos(startLatRad) * Math.sin(endLatRad) - Math.sin(startLatRad) * Math.cos(endLatRad) * Math.cos(endLngRad - startLngRad);
+  const brng = (Math.atan2(y, x) * 180) / Math.PI;
+  return (brng + 360) % 360;
+};
+
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+};
+
+// --- Canvas Rotation Logic ---
+const createRotatedCanvasIcon = (iconUrl, rotation = 0, size = 64) => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = iconUrl;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.translate(size / 2, size / 2);
+      ctx.rotate((rotation * Math.PI) / 180);
+      ctx.drawImage(img, -size / 2, -size / 2, size, size);
+      resolve(canvas.toDataURL());
+    };
+    img.onerror = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = "#3B82F6";
+      ctx.beginPath(); ctx.arc(size/2, size/2, size/3, 0, Math.PI*2); ctx.fill();
+      resolve(canvas.toDataURL());
+    };
+  });
+};
+
 export default function LiveMonitoring() {
   const { themeColors, theme } = useTheme();
   const { currentFont } = useFont();
@@ -37,8 +83,10 @@ export default function LiveMonitoring() {
   const mapRef = useRef(null);
   const googleMapRef = useRef(null);
   const markersRef = useRef({}); 
+  const lastPositionsRef = useRef({});
+  const lastHeadingsRef = useRef({});
   const socketRef = useRef(null);
-  const initialFetchDone = useRef(false); // 🔥 Prevent double toast
+  const initialFetchDone = useRef(false);
 
   // --- Fetch Initial Data ---
   const fetchData = useCallback(async () => {
@@ -143,27 +191,41 @@ export default function LiveMonitoring() {
     document.head.appendChild(script);
   }, [theme]);
 
-  // --- Marker Animation Helper ---
-  const animateMarker = (marker, newPos) => {
+  // --- Marker Animation Helper (Enhanced with Rotation) ---
+  const animateMarker = (marker, newPos, heading, iconUrl) => {
     const startPos = marker.getPosition();
-    const latDiff = newPos.lat - startPos.lat();
-    const lngDiff = newPos.lng - startPos.lng();
-    const startTime = performance.now();
-    const duration = 1000; // 1 second sliding
+    if (!startPos) return;
+    
+    const sLat = startPos.lat();
+    const sLng = startPos.lng();
+    let stepCount = 0;
+    const numSteps = 45; // Smooth movement
 
-    function step(currentTime) {
-      const elapsed = currentTime - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+    const step = () => {
+      stepCount++;
+      if (stepCount <= numSteps) {
+        const progress = stepCount / numSteps;
+        const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        
+        const cLat = sLat + (newPos.lat - sLat) * eased;
+        const cLng = sLng + (newPos.lng - sLng) * eased;
+        
+        marker.setPosition({ lat: cLat, lng: cLng });
 
-      const currentLat = startPos.lat() + (latDiff * progress);
-      const currentLng = startPos.lng() + (lngDiff * progress);
+        // Update Rotation live during movement
+        createRotatedCanvasIcon(iconUrl, heading).then(dataUrl => {
+          if (dataUrl && markersRef.current) {
+            marker.setIcon({
+              url: dataUrl,
+              scaledSize: new window.google.maps.Size(50, 50),
+              anchor: new window.google.maps.Point(25, 25),
+            });
+          }
+        });
 
-      marker.setPosition({ lat: currentLat, lng: currentLng });
-
-      if (progress < 1) {
         requestAnimationFrame(step);
       }
-    }
+    };
     requestAnimationFrame(step);
   };
 
@@ -171,45 +233,63 @@ export default function LiveMonitoring() {
   useEffect(() => {
     if (!googleMapRef.current || !window.google || loading) return;
 
-    // 1. Visible Markers Update (Smooth sliding & Online/Offline support)
     filteredDrivers.forEach(d => {
-      // Location aur Image honi chahiye tabhi dikhega
       if (d.currentLocation?.latitude && d.currentLocation?.longitude && d.carImageIcon) {
         const pos = { lat: parseFloat(d.currentLocation.latitude), lng: parseFloat(d.currentLocation.longitude) };
         
-        // Pass isOnline to getCarIcon for visual styling
-        const icon = getCarIcon(d.currentHeading || 0, d.isOnline ? '#10B981' : '#94A3B8', d.carImageIcon, d.isOnline);
+        // 🖼️ Get correct Icon URL (Handling absolute and relative paths)
+        const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+        let iconUrl = 'https://cdn-icons-png.flaticon.com/512/3202/3202926.png'; // Fallback
+        
+        if (d.carImageIcon) {
+          iconUrl = d.carImageIcon.startsWith('http') ? d.carImageIcon : `${baseUrl}/uploads/${d.carImageIcon}`;
+        }
 
-        if (!icon) return;
+        // 🔄 Heading & Bearing Logic
+        const lastPos = lastPositionsRef.current[d._id];
+        let finalHeading = d.currentHeading || 0;
 
-        // Agar marker already hai toh move/animate karo
+        if (lastPos) {
+          const dist = calculateDistance(lastPos.lat, lastPos.lng, pos.lat, pos.lng);
+          if (dist > 0.002) { 
+            finalHeading = calculateBearing(lastPos.lat, lastPos.lng, pos.lat, pos.lng);
+            lastHeadingsRef.current[d._id] = finalHeading;
+          } else {
+            finalHeading = lastHeadingsRef.current[d._id] || finalHeading;
+          }
+        }
+        lastPositionsRef.current[d._id] = pos;
+
         if (markersRef.current[d._id]) {
           const marker = markersRef.current[d._id];
-          const currentPos = marker.getPosition();
-
-          if (Math.abs(currentPos.lat() - pos.lat) > 0.00001 || Math.abs(currentPos.lng() - pos.lng) > 0.00001) {
-            animateMarker(marker, pos);
-          }
-          marker.setIcon(icon);
-          marker.setOpacity(d.isOnline ? 1.0 : 0.7); // Offline drivers are slightly faded
-        }
-        // Naya marker banao
-        else {
+          animateMarker(marker, pos, finalHeading, iconUrl);
+          marker.setOpacity(d.isOnline ? 1.0 : 0.7);
+        } else {
           const marker = new window.google.maps.Marker({
             position: pos,
             map: googleMapRef.current,
-            icon: icon,
             title: d.name,
             optimized: false,
-            opacity: d.isOnline ? 1.0 : 0.7
+            opacity: d.isOnline ? 1.0 : 0.7,
+            zIndex: 1000
           });
+
+          createRotatedCanvasIcon(iconUrl, finalHeading).then(dataUrl => {
+            if (dataUrl) {
+              marker.setIcon({
+                url: dataUrl,
+                scaledSize: new window.google.maps.Size(50, 50),
+                anchor: new window.google.maps.Point(25, 25),
+              });
+            }
+          });
+
           marker.addListener('click', () => setSelectedDriver(d));
           markersRef.current[d._id] = marker;
         }
       }
     });
 
-    // 2. Cleanup: Jo drivers ab filter mein nahi hain ya image nahi hai, unhe hatao
     Object.keys(markersRef.current).forEach(id => {
       const driver = filteredDrivers.find(d => d._id === id);
       if (!driver || !driver.carImageIcon) {
@@ -246,18 +326,6 @@ export default function LiveMonitoring() {
     }
   }, [user?._id]);
 
-  const getCarIcon = (rotation, color, carImage, isOnline) => {
-    // Agar image nahi hai toh marker hi mat dikhao
-    if (!carImage) return null;
-
-    const baseUrl = `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}/uploads/`;
-    
-    return {
-      url: `${baseUrl}${carImage}`,
-      scaledSize: new window.google.maps.Size(46, 46),
-      anchor: new window.google.maps.Point(23, 23)
-    };
-  };
 
 
   return (

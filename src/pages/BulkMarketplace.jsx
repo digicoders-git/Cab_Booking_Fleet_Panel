@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getBulkMarketplace, acceptBulkBooking } from "../api/bulkBookingApi";
+import { getBulkMarketplace, acceptBulkBooking, verifyBulkPayment } from "../api/bulkBookingApi";
 import { toast } from "sonner";
 import Swal from "sweetalert2";
 import {
@@ -9,6 +9,17 @@ import {
 import { useTheme } from "../context/ThemeContext";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+
+// --- Helper: Load Razorpay Script ---
+const loadRazorpay = () => {
+    return new Promise((resolve) => {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
+};
 
 export default function BulkMarketplace() {
     const [deals, setDeals] = useState([]);
@@ -43,8 +54,46 @@ export default function BulkMarketplace() {
         if (result.isConfirmed) {
             try {
                 const res = await acceptBulkBooking(deal._id);
-                if (res.success) {
-                    toast.success("Deal Accepted Successfully! Check your assignments.");
+                
+                if (res.success && res.securityAmount) {
+                    // 💳 TRIGGER RAZORPAY
+                    const sdkLoaded = await loadRazorpay();
+                    if (!sdkLoaded) {
+                        toast.error("Razorpay SDK failed to load");
+                        return;
+                    }
+
+                    const options = {
+                        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                        amount: res.securityAmount * 100, // paise
+                        currency: "INR",
+                        name: "Fleet Security Payment",
+                        description: `20% Security for Deal ${deal._id}`,
+                        handler: async (response) => {
+                            try {
+                                const verifyRes = await verifyBulkPayment({
+                                    bookingId: deal._id,
+                                    paymentId: response.razorpay_payment_id,
+                                    type: 'security'
+                                });
+                                if (verifyRes.success) {
+                                    toast.success("Security Paid! Deal assigned to you.");
+                                    fetchDeals();
+                                }
+                            } catch (err) {
+                                toast.error("Payment verification failed");
+                            }
+                        },
+                        prefill: {
+                            name: "Fleet Owner",
+                        },
+                        theme: { color: themeColors.primary },
+                    };
+
+                    const rzp = new window.Razorpay(options);
+                    rzp.open();
+                } else if (res.success) {
+                    toast.success("Deal Accepted Successfully!");
                     fetchDeals();
                 }
             } catch (err) {

@@ -26,3 +26,12 @@ export const getMyBulkRides = async () => {
     throw error.response?.data || error.message;
   }
 };
+
+export const verifyBulkPayment = async (payload) => {
+  try {
+    const response = await apiClient.post("/api/bulk-bookings/verify-payment", payload);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};

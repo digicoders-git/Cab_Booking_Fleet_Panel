@@ -35,3 +35,12 @@ export const verifyBulkPayment = async (payload) => {
     throw error.response?.data || error.message;
   }
 };
+
+export const assignDriverToBulk = async (bookingId, payload) => {
+  try {
+    const response = await apiClient.post(`/api/bulk-bookings/assign-driver/${bookingId}`, payload);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};

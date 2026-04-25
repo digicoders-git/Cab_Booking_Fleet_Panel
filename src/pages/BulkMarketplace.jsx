@@ -70,17 +70,22 @@ export default function BulkMarketplace() {
                         name: "Fleet Security Payment",
                         description: `20% Security for Deal ${deal._id}`,
                         handler: async (response) => {
+                            console.log("✅ Fleet Razorpay Success:", response);
                             try {
                                 const verifyRes = await verifyBulkPayment({
                                     bookingId: deal._id,
                                     paymentId: response.razorpay_payment_id,
                                     type: 'security'
                                 });
+                                console.log("📡 Backend Security Verification:", verifyRes);
                                 if (verifyRes.success) {
                                     toast.success("Security Paid! Deal assigned to you.");
                                     fetchDeals();
+                                } else {
+                                    toast.error(verifyRes.message || "Verification failed");
                                 }
                             } catch (err) {
+                                console.error("❌ Verification Error:", err);
                                 toast.error("Payment verification failed");
                             }
                         },
@@ -88,9 +93,23 @@ export default function BulkMarketplace() {
                             name: "Fleet Owner",
                         },
                         theme: { color: themeColors.primary },
+                        modal: {
+                            onDismiss: function() {
+                                console.log("⚠️ RAZORPAY STATUS: CANCELLED (Modal Dismissed)");
+                                toast.info("Payment cancelled");
+                            }
+                        }
                     };
 
                     const rzp = new window.Razorpay(options);
+                    
+                    rzp.on('payment.failed', function (response) {
+                        console.log("❌ RAZORPAY STATUS: FAILED");
+                        console.error("Reason:", response.error.description);
+                        console.error("Error Code:", response.error.code);
+                    });
+
+                    console.log("🚀 RAZORPAY STATUS: MODAL OPENING...");
                     rzp.open();
                 } else if (res.success) {
                     toast.success("Deal Accepted Successfully!");

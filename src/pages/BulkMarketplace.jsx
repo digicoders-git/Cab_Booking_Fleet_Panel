@@ -11,16 +11,7 @@ import jsPDF from "jspdf";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
 
-// --- Helper: Load Razorpay Script ---
-const loadRazorpay = () => {
-    return new Promise((resolve) => {
-        const script = document.createElement("script");
-        script.src = "https://checkout.razorpay.com/v1/checkout.js";
-        script.onload = () => resolve(true);
-        script.onerror = () => resolve(false);
-        document.body.appendChild(script);
-    });
-};
+
 
 export default function BulkMarketplace() {
     const [deals, setDeals] = useState([]);
@@ -44,10 +35,10 @@ export default function BulkMarketplace() {
     const generateReceipt = (booking) => {
         const doc = new jsPDF();
         const logoUrl = "/logo.png";
-        
+
         doc.setDrawColor(0);
         doc.setLineWidth(0.5);
-        doc.rect(5, 5, 200, 287); 
+        doc.rect(5, 5, 200, 287);
 
         const img = new Image();
         img.src = logoUrl;
@@ -55,132 +46,132 @@ export default function BulkMarketplace() {
         doc.setGState(new doc.GState({ opacity: 0.05 }));
         doc.addImage(img, 'PNG', 45, 110, 120, 120);
         doc.restoreGraphicsState();
-        
+
         doc.line(5, 15, 205, 15);
         doc.setFont("helvetica", "bold");
         doc.setFontSize(9);
         doc.text("PAN: GWKPS6928H", 10, 11);
         doc.text("SECURITY DEPOSIT RECEIPT", 155, 11);
-        
+
         const topLogo = new Image();
         topLogo.src = logoUrl;
-        doc.addImage(topLogo, 'PNG', 92, 18, 25, 25); 
-        
+        doc.addImage(topLogo, 'PNG', 92, 18, 25, 25);
+
         doc.setFontSize(28);
         doc.setTextColor(0, 0, 0);
         doc.text("KWIK CABS", 105, 52, { align: "center" });
-        
+
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
         doc.text("Arun Bhawan Kalu Kuwan Baberu Road, Banda UP", 105, 59, { align: "center" });
         doc.text("MOB : +91 7310221010", 105, 64, { align: "center" });
-        
+
         doc.line(5, 72, 205, 72);
-        doc.line(125, 72, 125, 125); 
-        
+        doc.line(125, 72, 125, 125);
+
         doc.setFont("helvetica", "bold");
         doc.setFontSize(10);
         doc.text("FLEET OWNER DETAILS (PAYER)", 15, 80);
         doc.setLineWidth(0.2);
-        doc.line(15, 81, 75, 81); 
-        
+        doc.line(15, 81, 75, 81);
+
         doc.setFontSize(9);
         doc.text("Name :", 10, 89);
         doc.setFont("helvetica", "normal");
-        
+
         let fleetData = {};
         try {
             fleetData = JSON.parse(localStorage.getItem('fleet-data') || localStorage.getItem('admin-data') || '{}');
-        } catch (e) {}
+        } catch (e) { }
 
         const fleetName = fleetData.companyName || fleetData.name || 'Fleet Owner';
         const fleetPhone = fleetData.phone || 'N/A';
         const fleetEmail = fleetData.email || 'N/A';
 
         doc.text(`${fleetName}`, 25, 89);
-        
+
         doc.setFont("helvetica", "bold");
         doc.text("Phone :", 10, 97);
         doc.setFont("helvetica", "normal");
         doc.text(`${fleetPhone}`, 25, 97);
-        
+
         doc.setFont("helvetica", "bold");
         doc.text("Email :", 10, 105);
         doc.setFont("helvetica", "normal");
         doc.text(`${fleetEmail}`, 25, 105);
-        
+
         doc.setFont("helvetica", "bold");
         doc.text("Pickup :", 10, 113);
         doc.setFont("helvetica", "normal");
         const pickupAddr = booking.pickup?.address || 'N/A';
         doc.text(`${pickupAddr.slice(0, 55)}${pickupAddr.length > 55 ? '...' : ''}`, 25, 113);
-        
+
         doc.setFont("helvetica", "bold");
         doc.text("Drop :", 10, 121);
         doc.setFont("helvetica", "normal");
         const dropAddr = booking.drop?.address || 'N/A';
         doc.text(`${dropAddr.slice(0, 55)}${dropAddr.length > 55 ? '...' : ''}`, 25, 121);
-        
+
         doc.setFont("helvetica", "bold");
         doc.text(`Receipt No. : SEC/${booking._id?.toString().slice(-3).toUpperCase() || 'NEW'}`, 130, 80);
         doc.text(`Date : ${new Date().toLocaleDateString('en-GB')}`, 130, 87);
         doc.text(`Pickup Date : ${new Date(booking.pickupDateTime).toLocaleDateString('en-GB')}`, 130, 94);
-        
+
         if (booking.tripType === 'RoundTrip' && booking.returnDateTime) {
             doc.text(`Return Date : ${new Date(booking.returnDateTime).toLocaleDateString('en-GB')}`, 130, 101);
         } else {
             doc.text(`Duration : ${booking.numberOfDays} Day(s)`, 130, 101);
         }
-        
+
         doc.text(`Trip Type : ${booking.tripType}`, 130, 108);
         doc.text(`Total Deal : INR ${booking.offeredPrice?.toLocaleString()}`, 130, 115);
         doc.text(`Booking ID : #${booking._id?.toString().slice(-8).toUpperCase()}`, 130, 122);
-        
+
         const tableTop = 125;
         doc.line(5, tableTop, 205, tableTop);
         doc.line(5, tableTop + 10, 205, tableTop + 10);
-        
+
         doc.setFont("helvetica", "bold");
         doc.text("S. NO.", 8, tableTop + 7);
         doc.text("Description", 70, tableTop + 7, { align: "center" });
         doc.text("Qty.", 150, tableTop + 7);
         doc.text("Amount", 185, tableTop + 7);
-        
+
         const tableBottom = 230;
         doc.line(18, tableTop, 18, tableBottom);
         doc.line(145, tableTop, 145, tableBottom);
-        
+
         let currentY = tableTop + 17;
         doc.setFont("helvetica", "normal");
         doc.text("1", 11, currentY);
         doc.text(`Security Deposit for Bulk Booking Deal (20%)`, 25, currentY);
         doc.text("1", 152, currentY);
-        
+
         const securityAmount = Math.round(booking.offeredPrice * 0.20);
         doc.setFont("helvetica", "bold");
         doc.text(`${securityAmount.toLocaleString()}`, 185, currentY);
-        doc.line(5, currentY + 3, 205, currentY + 3); 
-        
-        for(let i = currentY + 10; i < tableBottom; i += 10) {
+        doc.line(5, currentY + 3, 205, currentY + 3);
+
+        for (let i = currentY + 10; i < tableBottom; i += 10) {
             doc.line(5, i, 205, i);
         }
         doc.line(5, tableBottom, 205, tableBottom);
-        
+
         doc.setFont("helvetica", "bold");
         doc.text("TOTAL SECURITY PAID", 110, tableBottom + 10);
         doc.text(`INR ${securityAmount.toLocaleString()}`, 180, tableBottom + 10);
         doc.line(100, tableBottom + 13, 205, tableBottom + 13);
-        
+
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
         doc.text(`* This amount is non-refundable security deposit for accepting the marketplace deal.`, 10, tableBottom + 25);
         doc.text(`* Final settlement will happen after trip completion.`, 10, tableBottom + 30);
-        
+
         doc.setFont("helvetica", "bold");
         doc.text("For KWIK CABS", 150, tableBottom + 50);
         doc.line(140, tableBottom + 75, 200, tableBottom + 75);
         doc.text("Authorized Signatory", 155, tableBottom + 82);
-        
+
         doc.save(`KwikCabs_Security_${booking._id?.toString().slice(-6) || 'Fleet'}.pdf`);
     };
 
@@ -198,67 +189,16 @@ export default function BulkMarketplace() {
         if (result.isConfirmed) {
             try {
                 const res = await acceptBulkBooking(deal._id);
-                
-                if (res.success && res.securityAmount) {
-                    // 💳 TRIGGER RAZORPAY
-                    const sdkLoaded = await loadRazorpay();
-                    if (!sdkLoaded) {
-                        toast.error("Razorpay SDK failed to load");
-                        return;
-                    }
 
-                    const options = {
-                        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
-                        amount: res.securityAmount * 100, // paise
-                        currency: "INR",
-                        name: "Fleet Security Payment",
-                        description: `20% Security for Deal ${deal._id}`,
-                        handler: async (response) => {
-                            console.log("✅ Fleet Razorpay Success:", response);
-                            try {
-                                const verifyRes = await verifyBulkPayment({
-                                    bookingId: deal._id,
-                                    paymentId: response.razorpay_payment_id,
-                                    type: 'security'
-                                });
-                                console.log("📡 Backend Security Verification:", verifyRes);
-                                if (verifyRes.success) {
-                                    toast.success("Security Paid! Deal assigned to you.");
-                                    generateReceipt(deal);
-                                    fetchDeals();
-                                } else {
-                                    toast.error(verifyRes.message || "Verification failed");
-                                }
-                            } catch (err) {
-                                console.error("❌ Verification Error:", err);
-                                toast.error("Payment verification failed");
-                            }
-                        },
-                        prefill: {
-                            name: "Fleet Owner",
-                        },
-                        theme: { color: themeColors.primary },
-                        modal: {
-                            onDismiss: function() {
-                                console.log("⚠️ RAZORPAY STATUS: CANCELLED (Modal Dismissed)");
-                                toast.info("Payment cancelled");
-                            }
-                        }
-                    };
-
-                    const rzp = new window.Razorpay(options);
-                    
-                    rzp.on('payment.failed', function (response) {
-                        console.log("❌ RAZORPAY STATUS: FAILED");
-                        console.error("Reason:", response.error.description);
-                        console.error("Error Code:", response.error.code);
-                    });
-
-                    console.log("🚀 RAZORPAY STATUS: MODAL OPENING...");
-                    rzp.open();
+                if (res.success && res.paymentLinks && res.paymentLinks.web) {
+                    // 💳 REDIRECT TO HDFC PAYMENT GATEWAY
+                    toast.success("Redirecting to secure payment gateway...");
+                    window.location.href = res.paymentLinks.web;
                 } else if (res.success) {
-                    toast.success("Deal Accepted Successfully!");
+                    toast.success(res.message || "Deal Accepted Successfully!");
                     fetchDeals();
+                } else {
+                    toast.error(res.message || "Failed to process payment link");
                 }
             } catch (err) {
                 toast.error(err.message || "Failed to accept deal");
@@ -287,7 +227,7 @@ export default function BulkMarketplace() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                     <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: themeColors.text }}>
-                       
+
                         Bulk Marketplace
                     </h1>
                     <p className="text-sm mt-0.5" style={{ color: themeColors.textSecondary }}>
@@ -345,22 +285,21 @@ export default function BulkMarketplace() {
                                                 {deal.createdBy?.name || "Unknown Customer"}
                                             </p>
                                             {deal.createdByModel && (
-                                                <span 
+                                                <span
                                                     className="text-[8px] px-1.5 py-0.5 rounded-full font-black uppercase tracking-tighter flex items-center gap-1"
-                                                    style={{ 
-                                                        backgroundColor: 
-                                                            deal.createdByModel === 'Admin' ? '#fee2e2' : 
-                                                            deal.createdByModel === 'Agent' ? '#dbeafe' : '#dcfce7',
-                                                        color: 
-                                                            deal.createdByModel === 'Admin' ? '#dc2626' : 
-                                                            deal.createdByModel === 'Agent' ? '#2563eb' : '#16a34a',
-                                                        border: `0.5px solid ${
-                                                            deal.createdByModel === 'Admin' ? '#dc2626' : 
+                                                    style={{
+                                                        backgroundColor:
+                                                            deal.createdByModel === 'Admin' ? '#fee2e2' :
+                                                                deal.createdByModel === 'Agent' ? '#dbeafe' : '#dcfce7',
+                                                        color:
+                                                            deal.createdByModel === 'Admin' ? '#dc2626' :
+                                                                deal.createdByModel === 'Agent' ? '#2563eb' : '#16a34a',
+                                                        border: `0.5px solid ${deal.createdByModel === 'Admin' ? '#dc2626' :
                                                             deal.createdByModel === 'Agent' ? '#2563eb' : '#16a34a'}30`
                                                     }}
                                                 >
-                                                    {deal.createdByModel === 'Admin' ? '🔴 ' : 
-                                                     deal.createdByModel === 'Agent' ? '💼 ' : '👤 '}
+                                                    {deal.createdByModel === 'Admin' ? '🔴 ' :
+                                                        deal.createdByModel === 'Agent' ? '💼 ' : '👤 '}
                                                     {deal.createdByModel}
                                                 </span>
                                             )}
@@ -425,11 +364,11 @@ export default function BulkMarketplace() {
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     {[
                                         { icon: FaCalendarAlt, label: "Start Date", value: new Date(deal.pickupDateTime).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) },
-                                        { 
-                                            icon: FaCalendarAlt, 
-                                            label: "Return Date", 
-                                            value: deal.tripType === 'RoundTrip' && deal.returnDateTime 
-                                                ? new Date(deal.returnDateTime).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) 
+                                        {
+                                            icon: FaCalendarAlt,
+                                            label: "Return Date",
+                                            value: deal.tripType === 'RoundTrip' && deal.returnDateTime
+                                                ? new Date(deal.returnDateTime).toLocaleDateString("en-IN", { day: "numeric", month: "short" })
                                                 : "N/A",
                                             isHidden: deal.tripType !== 'RoundTrip'
                                         },

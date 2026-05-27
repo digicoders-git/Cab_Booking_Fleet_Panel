@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { useFont } from "../context/FontContext";
 import { driversApi } from "../api/driversApi";
@@ -59,6 +59,48 @@ const DriverFormModal = ({ isOpen, onClose, onSave, editDriver, themeColors }) =
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [imgPreview, setImgPreview] = useState(null);
+  const [isAddressSelected, setIsAddressSelected] = useState(false);
+  const addressRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen && addressRef.current && window.google) {
+      const autocomplete = new window.google.maps.places.Autocomplete(addressRef.current, {
+        types: ['address'],
+        componentRestrictions: { country: 'in' }
+      });
+
+      autocomplete.addListener('place_changed', () => {
+        const place = autocomplete.getPlace();
+        if (!place.geometry) return;
+
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+
+        let city = '', state = '';
+        place.address_components.forEach(comp => {
+          if (comp.types.includes('locality')) city = comp.long_name;
+          if (comp.types.includes('administrative_area_level_1')) state = comp.long_name;
+        });
+
+        setForm(prev => ({
+          ...prev,
+          address: place.formatted_address,
+          city: city || prev.city,
+          state: state || prev.state,
+          addressLatitude: lat,
+          addressLongitude: lng
+        }));
+        setIsAddressSelected(true);
+      });
+    }
+    if (isOpen) {
+      if (editDriver) {
+        setIsAddressSelected(true);
+      } else {
+        setIsAddressSelected(false);
+      }
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (editDriver) {
@@ -73,6 +115,8 @@ const DriverFormModal = ({ isOpen, onClose, onSave, editDriver, themeColors }) =
         city: editDriver.city || "",
         state: editDriver.state || "",
         pincode: editDriver.pincode || "",
+        addressLatitude: editDriver.addressLatitude || null,
+        addressLongitude: editDriver.addressLongitude || null,
         image: null
       });
       setImgPreview(editDriver.image ? `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000"}/uploads/${editDriver.image}` : null);
@@ -89,11 +133,20 @@ const DriverFormModal = ({ isOpen, onClose, onSave, editDriver, themeColors }) =
       setImgPreview(URL.createObjectURL(files[0]));
     } else {
       setForm(prev => ({ ...prev, [name]: value }));
+      if (name === "address") setIsAddressSelected(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!isAddressSelected) {
+      return Swal.fire({ 
+        icon: "error", 
+        title: "Address Selection Required", 
+        text: "Kripya Google suggestions se address select karein!" 
+      });
+    }
 
     // ─────────────────────────────────────────────
     // CLIENT SIDE VALIDATION
@@ -140,12 +193,13 @@ const DriverFormModal = ({ isOpen, onClose, onSave, editDriver, themeColors }) =
     borderColor: themeColors.border,
   };
 
-  const renderField = ({ label, name, type = "text", required = false }) => (
+  const renderField = ({ label, name, type = "text", required = false, ref = null }) => (
     <div key={name}>
       <label className="block text-xs font-medium mb-1" style={{ color: themeColors.text }}>
         {label} {required && <span style={{ color: themeColors.danger }}>*</span>}
       </label>
       <input
+        ref={ref}
         type={type}
         name={name}
         value={type !== "file" ? form[name] : undefined}
@@ -154,7 +208,7 @@ const DriverFormModal = ({ isOpen, onClose, onSave, editDriver, themeColors }) =
         accept={type === "file" ? "image/*" : undefined}
         className="w-full p-2.5 rounded-lg border text-sm focus:outline-none transition-all"
         style={inputStyle}
-        placeholder={`Enter ${label}`}
+        placeholder={name === "address" ? "Type and select from suggestions..." : `Enter ${label}`}
       />
     </div>
   );
@@ -188,10 +242,11 @@ const DriverFormModal = ({ isOpen, onClose, onSave, editDriver, themeColors }) =
             {renderField({ label: "Password", name: "password", type: "password", required: !editDriver })}
             {renderField({ label: "License Number", name: "licenseNumber", required: true })}
             {renderField({ label: "License Expiry", name: "licenseExpiry", type: "date", required: true })}
-            {renderField({ label: "Address", name: "address" })}
-            {renderField({ label: "City", name: "city" })}
-            {renderField({ label: "State", name: "state" })}
-            {renderField({ label: "Pincode", name: "pincode" })}
+            <div className="sm:col-span-2">
+              {renderField({ label: "Full Address", name: "address", required: true, ref: addressRef })}
+            </div>
+            {renderField({ label: "City", name: "city", required: true })}
+            {renderField({ label: "State", name: "state", required: true })}
             <div className="sm:col-span-2">
                {renderField({ label: "Profile Image", name: "image", type: "file" })}
             </div>

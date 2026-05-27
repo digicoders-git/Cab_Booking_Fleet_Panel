@@ -94,9 +94,13 @@ export default function MyBulkRides() {
     };
 
     // Filter rides based on tab
-    const pendingRides = rides.filter(r => (r.assignedDrivers || []).length === 0);
-    const assignedRides = rides.filter(r => (r.assignedDrivers || []).length > 0);
-    const displayedRides = activeTab === "pending" ? pendingRides : assignedRides;
+    const pendingRides = rides.filter(r => (r.assignedDrivers || []).length === 0 && r.status !== 'Completed' && r.status !== 'Cancelled');
+    const assignedRides = rides.filter(r => (r.assignedDrivers || []).length > 0 && r.status !== 'Completed' && r.status !== 'Cancelled');
+    const completedRides = rides.filter(r => r.status === 'Completed' || r.status === 'Cancelled');
+    
+    let displayedRides = pendingRides;
+    if (activeTab === "assigned") displayedRides = assignedRides;
+    if (activeTab === "completed") displayedRides = completedRides;
 
     const generateReceipt = (booking) => {
         const doc = new jsPDF();
@@ -281,6 +285,13 @@ export default function MyBulkRides() {
                     >
                         Assigned ({assignedRides.length})
                     </button>
+                    <button 
+                        onClick={() => setActiveTab("completed")}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === "completed" ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        style={activeTab === "completed" ? { color: themeColors.primary } : {}}
+                    >
+                        History ({completedRides.length})
+                    </button>
                 </div>
             </div>
 
@@ -297,7 +308,7 @@ export default function MyBulkRides() {
                         No {activeTab} assignments
                     </h3>
                     <p className="text-sm" style={{ color: themeColors.textSecondary }}>
-                        {activeTab === "pending" ? "All your accepted rides are fully assigned." : "Assign drivers to your accepted rides to see them here."}
+                        {activeTab === "pending" ? "All your accepted rides are fully assigned." : activeTab === "assigned" ? "Assign drivers to your accepted rides to see them here." : "You have no completed rides yet."}
                     </p>
                 </div>
             ) : (

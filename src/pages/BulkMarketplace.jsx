@@ -20,6 +20,33 @@ export default function BulkMarketplace() {
 
     useEffect(() => { fetchDeals(); }, []);
 
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('success') === 'true') {
+            window.history.replaceState({}, '', window.location.pathname);
+            Swal.fire({
+                icon: 'success',
+                title: '✅ Payment Successful!',
+                text: 'Your security deposit / advance payment has been verified. The bulk deal is now accepted and locked.',
+                confirmButtonColor: themeColors.primary || '#10B981',
+                confirmButtonText: 'OK',
+                allowOutsideClick: false
+            });
+            fetchDeals();
+        } else if (params.get('error')) {
+            const errorMsg = decodeURIComponent(params.get('error'));
+            window.history.replaceState({}, '', window.location.pathname);
+            Swal.fire({
+                icon: 'error',
+                title: '❌ Payment Failed',
+                text: errorMsg || 'Something went wrong with the security/advance payment.',
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'OK',
+                allowOutsideClick: false
+            });
+        }
+    }, [themeColors]);
+
     const fetchDeals = async () => {
         try {
             setLoading(true);

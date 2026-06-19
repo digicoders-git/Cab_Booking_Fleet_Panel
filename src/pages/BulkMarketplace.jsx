@@ -217,7 +217,17 @@ export default function BulkMarketplace() {
             try {
                 const res = await acceptBulkBooking(deal._id);
 
-                if (res.success && res.paymentLinks && res.paymentLinks.web) {
+                if (res.success && res.walletDeducted) {
+                    // Bypass logic success
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Deal Locked!',
+                        text: 'Security deposit has been directly deducted from your wallet balance.',
+                        confirmButtonColor: '#10B981',
+                        confirmButtonText: 'Great!'
+                    });
+                    fetchDeals();
+                } else if (res.success && res.paymentLinks && res.paymentLinks.web) {
                     // 💳 REDIRECT TO HDFC PAYMENT GATEWAY
                     toast.success("Redirecting to secure payment gateway...");
                     window.location.href = res.paymentLinks.web;
@@ -228,7 +238,8 @@ export default function BulkMarketplace() {
                     toast.error(res.message || "Failed to process payment link");
                 }
             } catch (err) {
-                toast.error(err.message || "Failed to accept deal");
+                // Handle the wallet limit error
+                toast.error(err.message || err || "Failed to accept deal");
             }
         }
     };

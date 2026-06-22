@@ -338,6 +338,11 @@ export default function MyBulkRides() {
                                         >
                                             {ride.tripType === 'RoundTrip' ? 'Round Trip' : 'One Way'}
                                         </span>
+                                        {ride.isOutstation && (
+                                            <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border bg-red-500/10 text-red-600 border-red-500/20 flex items-center gap-1">
+                                                <FaRoad size={10} /> OUTSTATION
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <button

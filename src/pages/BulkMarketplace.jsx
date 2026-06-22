@@ -372,6 +372,18 @@ export default function BulkMarketplace() {
                                 </div>
                             )}
 
+                            {/* Outstation Badge Bar */}
+                            {deal.isOutstation && (
+                                <div className="px-5 py-2 bg-red-500/5 border-b flex flex-col gap-1" style={{ borderColor: themeColors.border }}>
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-red-600 bg-red-100 px-2 py-0.5 rounded w-fit flex items-center gap-1">
+                                        <FaRoad size={10} /> OUTSTATION
+                                    </span>
+                                    <span className="text-[10px] text-red-700 font-bold italic">
+                                        *State/Toll Tax Extra. To be collected directly from Rider.
+                                    </span>
+                                </div>
+                            )}
+
                             {/* Card Body */}
                             <div className="p-5 space-y-4">
 

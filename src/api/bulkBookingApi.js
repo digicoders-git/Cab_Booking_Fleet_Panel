@@ -44,3 +44,14 @@ export const assignDriverToBulk = async (bookingId, payload) => {
     throw error.response?.data || error.message;
   }
 };
+
+export const downloadSecurityReceipt = async (bookingId) => {
+  try {
+    const response = await apiClient.get(`/api/bulk-bookings/security-receipt/${bookingId}`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
